@@ -1,1 +1,64 @@
-/* Arguments screen styles (js/screens/arguments.js). Owned by that screen only. */
+/* Her > Arguments styles (js/screens/arguments.js). Owned by that screen only.
+   The pane itself doesn't scroll: the stats and the Log · Patterns switch stay put,
+   only the list under them scrolls. */
+.arg-pane { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.arg-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.arg-col { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.arg-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 24px; }
+.arg-colhead { display: none; }
+
+/* Phone: one panel at a time. */
+.arg-wrap[data-view="log"] .arg-col-pat,
+.arg-wrap[data-view="patterns"] .arg-col-log { display: none; }
+.arg-seg { flex: none; }
+
+.arg-stats { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.arg-card { display: flex; flex-direction: column; justify-content: space-between; gap: 2px; min-width: 0; padding: 8px 12px; border-radius: var(--r); background: var(--surface); }
+.arg-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
+.arg-big { font-size: 26px; font-weight: 800; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.arg-tip { font-size: var(--fs-md); color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Log rows */
+.arg-row { min-height: 50px; }
+.arg-end { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.arg-dots { display: flex; gap: 3px; }
+.arg-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--raised-hi); }
+.arg-dots i.on { background: var(--accent); }
+.arg-out { font-size: var(--fs-sm); font-weight: 600; color: var(--ink-faint); }
+.arg-out.is-open { color: var(--danger); }
+.arg-out.is-revisit { color: var(--accent); }
+
+/* Patterns */
+.pat-cols { display: flex; align-items: center; gap: 8px; padding: 0 0 4px; border-bottom: 1px solid var(--rule); font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
+.pat-cols > span:first-child { flex: 1; }
+.pat { padding: 8px 0; border-bottom: 1px solid var(--rule-soft); }
+.pat-head { display: flex; align-items: center; gap: 8px; }
+.pat-num { flex: none; width: 36px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+.pat-head .pat-num { font-size: var(--fs-xl); }
+.pat-num.all { color: var(--ink-soft); font-weight: 600; }
+.pat-head .pat-num.all { font-size: var(--fs-lg); }
+.pat-line { display: flex; align-items: baseline; gap: 8px; width: 100%; padding-top: 3px; font-size: var(--fs-md); }
+.pat-k { flex: none; width: 58px; color: var(--ink-faint); font-size: var(--fs-sm); font-weight: 600; }
+.pat-v { flex: 1; min-width: 0; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pat-n { flex: none; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.pat-revisit .pat-k { color: var(--accent); }
+.pat-revisit:active { background: var(--surface); }
+
+/* Editor: topic and date share a row. */
+.arg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.arg-pair .field { min-width: 0; }
+.arg-form .field textarea { min-height: 60px; }
+
+/* Laptop: Log (with stats) and Patterns side by side, each scrolls itself. */
+@media (min-width: 860px) {
+  .arg-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; max-width: 1320px; width: 100%; }
+  .arg-seg { display: none; }
+  .arg-wrap[data-view] .arg-col-pat, .arg-wrap[data-view] .arg-col-log { display: flex; }
+  .arg-colhead { display: block; flex: none; border-bottom: 1px solid var(--rule); }
+  .arg-card { padding: 14px 18px; }
+  .arg-big { font-size: 34px; }
+  .arg-row { min-height: 60px; }
+  .arg-row .row-title, .pat-head .row-title { font-size: 17px; }
+  .pat { padding: 12px 0; }
+  .pat-k { width: 66px; }
+}
