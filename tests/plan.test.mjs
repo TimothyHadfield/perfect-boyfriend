@@ -177,7 +177,8 @@ test('"We did this" rows: dateLog with title/date/stops/cost, one sscUses row pe
   const t = TIM_PLANS[3];
   const p = planFromStops(t.stops.map(S), { day: t.day, month: OCT, firstAt: t.at, sscUses: [] });
   const rows = logRows(p, '2026-10-15');
-  eq(rows.dateLog, { title: 'Redline Racing + Sweeto Burrito', date: '2026-10-15', stops: ['Redline Racing', 'Sweeto Burrito'], cost: p.total });
+  eq(rows.dateLog, { title: 'Redline Racing + Sweeto Burrito', date: '2026-10-15', stops: ['Redline Racing', 'Sweeto Burrito'],
+    stopIds: ['redline-racing', 'sweeto-burrito-orem'], cost: p.total });
   eq(rows.sscUses.length, 2);
   ok(rows.sscUses.every((u) => u.date === '2026-10-15' && u.dealId), 'use rows');
   const t2 = TIM_PLANS[1];   // Ticket to Ride at home has no deal

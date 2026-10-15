@@ -1,6 +1,9 @@
 // Orem date planner (pure; no DOM, no Firebase). Tested in tests/plan.test.mjs.
 // Stops come from data/plan-stops.json (built by data/build-plan-stops.mjs).
 // Times are minutes after midnight (18:30 = 1110). Days: 0 = Sunday ... 6 = Saturday.
+// Road drive times come from data/drive-times.json (o.times = driveTable(json)); without it, estimates.
+// o.weather = that day's forecast ({code, hi, lo, pop}, js/logic/weather.js); o.history = dateLog rows.
+import { badWeather, dateTemp, wetLikely, wxKind } from './weather.js';
 
 export const OREM = { lat: 40.2969, lng: -111.6946, name: 'Orem' };
 export const ROAD_FACTOR = 1.3;     // straight line -> road distance
@@ -49,6 +52,38 @@ export function driveMin(a, b) {
   const km = haversineKm(a, b);
   if (km < 0.15) return 0;
   return Math.round((km * ROAD_FACTOR) / CITY_KMH * 60 + PARK_MIN);
+}
+
+/* ---------------- road drive times ---------------- */
+
+// data/drive-times.json -> lookup table (null if it's missing or broken).
+export function driveTable(json) {
+  if (!json || !Array.isArray(json.ids) || !Array.isArray(json.min)) return null;
+  return { idx: new Map(json.ids.map((id, i) => [id, i])), min: json.min };
+}
+
+function tableMin(tbl, a, b) {
+  if (!tbl || a == null || b == null) return null;
+  const i = tbl.idx.get(a), j = tbl.idx.get(b);
+  if (i == null || j == null) return null;
+  const v = tbl.min[i] && tbl.min[i][j];
+  return typeof v === 'number' ? v : null;
+}
+
+const isOrem = (o) => !o || o === OREM || (o.lat === OREM.lat && o.lng === OREM.lng);
+
+// Where a stop is, as a drive-times key: its id; "at home" is the start, which is only in the table when it's Orem.
+function placeKey(stop, origin) {
+  if (stop.home) return isOrem(origin) ? 'orem' : null;
+  return stop.id;
+}
+
+// One leg: road time + parking when both ends are in the table, else the estimate (est: true).
+function leg(fromKey, fromPt, toStop, toPt, o) {
+  if (haversineKm(fromPt, toPt) < 0.15) return { min: 0, est: false };
+  const t = tableMin(o.times, fromKey, placeKey(toStop, o.origin || OREM));
+  if (t != null) return { min: t + (toStop.home ? 0 : PARK_MIN), est: false };
+  return { min: driveMin(fromPt, toPt), est: true };
 }
 
 // Rough Orem sunset by month (local clock time, mid-month).
@@ -208,12 +243,14 @@ export function timeline(stops, o) {
   const month = o.month || 1;
   let t = toMin(o.start) ?? 18 * 60;
   let at = origin;
+  let atKey = isOrem(origin) ? 'orem' : null;
   const items = [];
   for (let i = 0; i < stops.length; i++) {
     const s = stops[i];
     if (!stopOpen(s, o.day, month)) return null;
     const p = stopPoint(s, origin);
-    const drive = driveMin(at, p);
+    const lg = leg(atKey, at, s, p, o);
+    const drive = lg.min;
     const arrive = t + drive;
     let begin = arrive;
     const slot = s.slots ? s.slots[o.day] : null;
@@ -230,9 +267,10 @@ export function timeline(stops, o) {
     if (end > LATEST_END) return null;
     const deal = pickDeal(s, o.day, begin, month, o.sscUses);
     const price = Math.max(0, (s.cost || 0) - (deal ? deal.save : 0));
-    items.push({ stop: s, start: begin, end, drive, wait: begin - arrive, km: haversineKm(at, p), deal, price });
+    items.push({ stop: s, start: begin, end, drive, est: lg.est && drive > 0, wait: begin - arrive, km: haversineKm(at, p), deal, price });
     t = end;
     at = p;
+    atKey = placeKey(s, origin);
   }
   const total = items.reduce((a, x) => a + x.price, 0);
   const drive = items.reduce((a, x) => a + x.drive, 0);
@@ -273,11 +311,58 @@ export function eligible(all, o) {
     && (s.home || haversineKm(origin, s) <= (o.maxKm || MAX_KM)));
 }
 
-function score(tl, o) {
+// Rain, snow, or very cold/hot (o.weather): outdoor stops cost a lot, so indoor plans win.
+const outdoorBad = (o) => !!o.weather && badWeather(o.weather, toMin(o.start) ?? 18 * 60);
+const isOutdoor = (s) => s.indoor === false && !s.home;
+
+function score(tl, o, marks) {
   const waits = tl.items.reduce((a, x) => a + x.wait, 0);
   const picks = tl.items.filter((x) => x.stop.pick).length;
   const deals = tl.items.filter((x) => x.deal).length;
-  return tl.total + tl.drive * 0.5 + waits * 0.1 - picks * 3 - deals * 2 - tl.items.length * 5 + (o.budget != null && tl.total > o.budget ? 1000 : 0);
+  const loved = marks ? tl.items.filter((x) => marks.loved.has(x.stop.id)).length : 0;
+  const outside = outdoorBad(o) ? tl.items.filter((x) => isOutdoor(x.stop)).length : 0;
+  return tl.total + tl.drive * 0.5 + waits * 0.1 - picks * 3 - deals * 2 - loved * 8 + outside * 40 - tl.items.length * 5
+    + (o.budget != null && tl.total > o.budget ? 1000 : 0);
+}
+
+/* ---------------- learning from the date log ---------------- */
+
+const DAY_MS = 86400000;
+function dayNum(ymdStr) {
+  const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(String(ymdStr || ''));
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) / DAY_MS : null;
+}
+
+// From dateLog rows: stops to skip (used within 30 days, or from a 'meh' date within 90) and stops from 'loved' dates.
+// Rows without stopIds (older ones) match by stop name. `ymd` = the day being planned.
+export function historyMarks(rows, all, ymd) {
+  const skip = new Set(), loved = new Set();
+  const today = dayNum(ymd);
+  if (!Array.isArray(rows) || today == null) return { skip, loved };
+  const nk = (n) => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const byName = new Map();
+  for (const s of all) for (const n of [s.short, s.name]) if (n && !byName.has(nk(n))) byName.set(nk(n), s.id);
+  for (const r of rows) {
+    const d = r ? dayNum(r.date) : null;
+    if (d == null) continue;
+    const ids = Array.isArray(r.stopIds) && r.stopIds.length ? r.stopIds
+      : (Array.isArray(r.stops) ? r.stops : []).map((n) => byName.get(nk(n))).filter(Boolean);
+    const gap = Math.abs(today - d);
+    for (const id of ids) {
+      if (gap <= 30 || (r.rating === 'meh' && gap <= 90)) skip.add(id);
+      if (r.rating === 'loved') loved.add(id);
+    }
+  }
+  return { skip, loved };
+}
+
+const marksFor = (all, o) => (o.history ? historyMarks(o.history, all, o.ymd) : null);
+
+// Leave out skipped stops, unless that leaves nothing.
+function fresh(list, marks) {
+  if (!marks) return list;
+  const f = list.filter((s) => !marks.skip.has(s.id));
+  return f.length ? f : list;
 }
 
 // Build one plan. o = {day, month, start:'HH:MM', budget|null, vibe, origin, seed, sscUses, shape?, lock?: {index: stopId}}.
@@ -287,7 +372,11 @@ export function makePlan(all, o) {
   const pool = eligible(all, o);
   const byId = Object.fromEntries(all.map((s) => [s.id, s]));
   const origin = o.origin || OREM;
-  const shapes = o.shape ? [o.shape] : SHAPES[o.vibe] || SHAPES.any;
+  const marks = marksFor(all, o);
+  const wet = outdoorBad(o);
+  // Bad weather: a free outdoor stop becomes a free-ish indoor one (museum, show), so cheap plans stay indoors.
+  const shapes = (o.shape ? [o.shape] : SHAPES[o.vibe] || SHAPES.any)
+    .map((sh) => (wet && !o.shape ? sh.map((k) => (k === 'free-outdoor' ? 'culture' : k)) : sh));
   const seen = new Map();
   const tries = o.tries || 260;
   for (let n = 0; n < tries; n++) {
@@ -299,11 +388,12 @@ export function makePlan(all, o) {
       const locked = o.lock && o.lock[i] ? byId[o.lock[i]] : null;
       if (locked) { seq.push(locked); at = stopPoint(locked, origin); continue; }
       const nextLock = o.lock && o.lock[i + 1] ? byId[o.lock[i + 1]] : null;
-      const cands = pool.filter((s) => s.kind === shape[i] && vibeOk(s, o.vibe) && !seq.includes(s) && !(o.exclude || []).includes(s.id));
+      const cands = fresh(pool.filter((s) => s.kind === shape[i] && vibeOk(s, o.vibe) && !seq.includes(s) && !(o.exclude || []).includes(s.id)), marks);
       if (!cands.length) { bad = true; break; }
       const dist = (s) => {
         const p = stopPoint(s, origin);
-        return haversineKm(at, p) + (nextLock ? haversineKm(p, stopPoint(nextLock, origin)) : 0) - (s.pick ? 1 : 0);
+        return haversineKm(at, p) + (nextLock ? haversineKm(p, stopPoint(nextLock, origin)) : 0) - (s.pick ? 1 : 0)
+          - (marks && marks.loved.has(s.id) ? 3 : 0) + (wet && isOutdoor(s) ? 8 : 0);
       };
       cands.sort((a, b) => dist(a) - dist(b) || (a.id < b.id ? -1 : 1));
       const k = Math.min(cands.length, 7);
@@ -315,7 +405,7 @@ export function makePlan(all, o) {
     const key = seq.map((s) => s.id).join('>');
     if (seen.has(key)) continue;
     const tl = timeline(seq, o);
-    seen.set(key, tl ? { key, ...tl, score: score(tl, o) } : null);
+    seen.set(key, tl ? { key, ...tl, score: score(tl, o, marks) } : null);
   }
   const ok = [...seen.values()].filter(Boolean).sort((a, b) => a.score - b.score || (a.key < b.key ? -1 : 1));
   if (!ok.length) return null;
@@ -327,13 +417,17 @@ export function makePlan(all, o) {
 }
 
 function finish(tl, o, over) {
+  const key = tl.key || tl.items.map((x) => x.stop.id).join('>');
+  const start = toMin(o.start) ?? 18 * 60;
   return {
-    key: tl.key || tl.items.map((x) => x.stop.id).join('>'),
-    day: o.day, start: toMin(o.start) ?? 18 * 60,
+    key, day: o.day, start,
     items: tl.items, total: tl.total, drive: tl.drive,
+    driveEst: tl.items.some((x) => x.est),
     over: !!over || (o.budget != null && tl.total > o.budget),
-    bring: bringList(tl.items, o.month),
-    wear: wearLine(tl.items, o.month),
+    bring: bringList(tl.items, o.month, o.weather),
+    wear: wearLine(tl.items, o.month, o.weather, tl.items.length ? tl.items[0].start : start),
+    weather: o.weather || null,
+    talk: talkAbout(key),
   };
 }
 
@@ -341,7 +435,8 @@ function finish(tl, o, over) {
 // o.firstAt ('HH:MM') = when the first stop starts; you leave earlier by the drive there.
 export function planFromStops(stops, o) {
   if (o.firstAt && stops.length) {
-    const lead = driveMin(o.origin || OREM, stopPoint(stops[0], o.origin || OREM));
+    const origin = o.origin || OREM;
+    const lead = leg(isOrem(origin) ? 'orem' : null, origin, stops[0], stopPoint(stops[0], origin), o).min;
     const m = toMin(o.firstAt) - lead;
     o = { ...o, start: `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}` };
   }
@@ -353,14 +448,15 @@ export function planFromStops(stops, o) {
 export function swapStop(all, plan, i, o, exclude = []) {
   const cur = plan.items.map((x) => x.stop);
   const kind = cur[i].kind;
-  const pool = eligible(all, o).filter((s) => s.kind === kind && !cur.includes(s) && !exclude.includes(s.id));
+  const marks = marksFor(all, o);
+  const pool = fresh(eligible(all, o).filter((s) => s.kind === kind && !cur.includes(s) && !exclude.includes(s.id)), marks);
   let best = null;
   for (const s of pool) {
     const seq = cur.slice();
     seq[i] = s;
     const tl = timeline(seq, o);
     if (!tl) continue;
-    const sc = score(tl, o) + (vibeOk(s, o.vibe) ? 0 : 5);
+    const sc = score(tl, o, marks) + (vibeOk(s, o.vibe) ? 0 : 5);
     if (!best || sc < best.sc || (sc === best.sc && s.id < best.s.id)) best = { sc, tl, s };
   }
   return best ? finish(best.tl, o, false) : null;
@@ -368,23 +464,86 @@ export function swapStop(all, plan, i, o, exclude = []) {
 
 /* ---------------- bring / wear ---------------- */
 
-export function bringList(items, month) {
+// wx = the day's forecast (optional): rain likely adds an umbrella.
+export function bringList(items, month, wx) {
   const out = [];
   const add = (x) => { if (x && !out.includes(x)) out.push(x); };
   if (items.some((x) => x.deal)) add('SSC card');
   for (const x of items) (x.stop.bring || []).forEach(add);
-  const outdoor = items.some((x) => x.stop.indoor === false && !x.stop.home);
-  if (outdoor && month >= 6 && month <= 8) add('Sunscreen');
+  const outdoor = items.some((x) => isOutdoor(x.stop));
+  const sunny = wx ? wx.hi >= 75 && !wetLikely(wx) : month >= 6 && month <= 8;
+  if (outdoor && sunny) add('Sunscreen');
+  if (wx && wetLikely(wx) && wxKind(wx.code) !== 'snow' && items.some((x) => !x.stop.home)) add('Umbrella');
   return out;
 }
 
-export function wearLine(items, month) {
+// With a forecast: dress for the temperature during the date (start = when the first stop starts).
+// Without one: by month (coat Nov-Mar, jacket Oct/Apr).
+export function wearLine(items, month, wx, start) {
   const out = [];
   const add = (x) => { if (x && !out.includes(x)) out.push(x); };
   for (const x of items) add(x.stop.wear);
-  if (month >= 11 || month <= 3) add('Warm coat');
+  if (wx) {
+    const t = dateTemp(wx, start);
+    if (t < 48) add('Warm coat');
+    else if (t < 62) add('Light jacket');
+    else if (t >= 85) add('Light clothes');
+    if (wxKind(wx.code) === 'snow' && wetLikely(wx)) add('Boots');
+  } else if (month >= 11 || month <= 3) add('Warm coat');
   else if (month === 10 || month === 4) add('Light jacket');
   return out.length ? out.join(' · ') : 'Casual';
+}
+
+/* ---------------- something to talk about ---------------- */
+
+export const TALK = [
+  'What made your week a little better?',
+  'Where would you road-trip if we left tomorrow?',
+  'What food from your childhood do you miss?',
+  'Three people, any era, at one dinner: who?',
+  'What do you want to learn but haven\'t started?',
+  'What song would play when you walk into a room?',
+  'Best job you could have for exactly one year?',
+  'What skill would you master overnight?',
+  'What\'s your comfort show, and why that one?',
+  'What did you want to be when you were ten?',
+  'What tradition should we start?',
+  'Your perfect free Saturday, start to finish?',
+  'Best advice anyone has given you?',
+  'Which fictional world would you live in?',
+  'What are you looking forward to this month?',
+  'What harmless opinion will you never give up?',
+  'Mountains or beach for a week off?',
+  'A place nearby you\'ve never been but want to go?',
+  'Funniest thing that happened to you this year?',
+  'Whose life would you swap with for a day?',
+  'What should I read, watch or listen to next?',
+  'Which family recipe should never be lost?',
+  'What bucket-list item could we actually do soon?',
+  'Best gift you\'ve ever gotten?',
+  'What does a perfect lazy Sunday look like?',
+  'If we opened a tiny business, what would it sell?',
+  'What habit are you quietly proud of?',
+  'Which decade would you visit for a week?',
+  'What snack could you eat every single day?',
+  'What do people often get wrong about you?',
+  'Which childhood memory still makes you laugh?',
+  'If you taught one class, what would it be?',
+  'Most beautiful place you\'ve ever seen?',
+  'Which superpower would help most on a Tuesday?',
+  'What have you changed your mind about lately?',
+  'How would you spend a dream birthday?',
+  'What small luxury is always worth it to you?',
+  'Which song do you always sing along to?',
+  'What\'s one goal you have for this year?',
+  'What should we do more of together?',
+];
+
+// Same plan, same line.
+export function talkAbout(key) {
+  let h = 2166136261;
+  for (const c of String(key || '')) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return TALK[(h >>> 0) % TALK.length];
 }
 
 /* ---------------- Tim's plans (docs/tim-date-notes.md) ---------------- */
@@ -441,7 +600,10 @@ export function planTitle(plan) {
 // Rows saved by "We did this": one dateLog row, one sscUses row per deal used.
 export function logRows(plan, dateYMD) {
   return {
-    dateLog: { title: planTitle(plan), date: dateYMD, stops: plan.items.map((x) => x.stop.short || x.stop.name), cost: plan.total },
+    dateLog: {
+      title: planTitle(plan), date: dateYMD, stops: plan.items.map((x) => x.stop.short || x.stop.name),
+      stopIds: plan.items.map((x) => x.stop.id), cost: plan.total,
+    },
     sscUses: plan.items.filter((x) => x.deal).map((x) => ({ dealId: x.deal.id, date: dateYMD })),
   };
 }
