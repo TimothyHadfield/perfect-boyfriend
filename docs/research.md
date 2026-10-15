@@ -18,6 +18,8 @@ Couples apps (both partners use them): [LoveTrack](https://apps.apple.com/us/app
 
 Local date planners: [Best Date Ever](https://apps.apple.com/us/app/-/id6748460083), [BlindfoldDate](https://peerpush.com/p/blindfolddate) (real venues are paid), [OurDate](https://app.dealroom.co/companies/ourdate), [DateCart](https://betalist.com/startups/datecart).
 
+Period tracking for partners: **Flo for Partners** (Oct 2023) lets her share her Flo cycle with him. Details and Flo's algorithm history are in [cycle-research.md](cycle-research.md).
+
 **Verdict:** the pieces exist separately, mostly behind subscriptions. Nothing combines a partner organizer with **cheap, nearby Orem plans built on Starving Student Card deals**. That combo is the reason to build.
 
 ## Starving Student Card
