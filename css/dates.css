@@ -1,8 +1,30 @@
 /* Dates screen styles (js/screens/dates.js). */
 
+/* Upcoming · Past */
+.dt-seg { flex: none; margin: 8px var(--pad) 0; }
+
+/* Past: the spending line stays put, the list scrolls inside. */
+.pane.dt-past { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.dt-past > .list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 24px; }
+.dt-spend { flex: none; display: flex; align-items: center; gap: 2px; min-height: 40px; border-bottom: 1px solid var(--rule); }
+.dt-spend .sec-head { padding: 0; }
+.dt-spend-val { margin-left: auto; font-size: var(--fs-lg); font-weight: 700; font-variant-numeric: tabular-nums; }
+.dt-spend-of { margin-left: 5px; font-size: var(--fs-md); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+button.dt-past-row { text-align: left; }
+.dt-rate.r-loved { color: var(--accent); }
+.dt-rate.r-ok { color: var(--ink-soft); }
+.dt-rate.r-meh { color: var(--ink-faint); font-weight: 400; }
+
+/* Editor */
+.dt-two { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; }
+.dt-stops { margin-top: -6px; font-size: var(--fs-md); color: var(--ink-faint); }
+
 /* Laptop: two columns of rows across the width. */
 @media (min-width: 860px) {
-  .dates-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); column-gap: 40px; max-width: 1320px; }
+  .dt-seg { max-width: 420px; margin-top: 12px; }
+  .dates-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); column-gap: 40px; max-width: 1320px; align-content: start; }
   .dates-list .row { min-height: 60px; }
   .dates-list .row-title { font-size: 17px; }
+  .dt-spend { max-width: 1320px; }
 }
