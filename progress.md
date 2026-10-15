@@ -7,7 +7,7 @@ _Last updated 2026-10-15 (end of kickoff chat). For Claude only; Tim doesn't rea
 3. Skim the last 3 entries of `chat.md`. Older history: `docs/archive/`.
 
 ## Goal right now
-All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, the unspecified design choices below). No build work is authorized beyond what he asks next.
+Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, Plan with real drive times/weather/history/Talk line, Dates Past + monthly spending + budget in Settings, gift ideas from her profile, argument patterns). Waiting on Tim's reaction (real iPhone use, the unspecified design choices below). No build work is authorized beyond what he asks next.
 
 ## Status
 | Area | State | Notes |
@@ -23,7 +23,8 @@ All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, th
 
 ## Authorized next steps
 - 2026-10-15 · Slice 1 and wave 2 (all four features) — done.
-- 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement"): 4 builders running (w3-home, w3-plan, w3-history, w3-gifts-args). Groundwork done: `monthlyBudget` in settings (rules deployed, 38/38). At merge: add their new logic/data files to sw.js + bump CACHE.
+- 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement") — done, all 4 merged and live @ c418bf1.
+- Nothing else open. Next work comes from Tim.
 
 ## Standing instructions (Tim's words)
 - "Right now we'll just focus on Orem Utah and Pair it with the Starving Student Card"
@@ -37,7 +38,7 @@ All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, th
 ## Traps / rules that bite
 - **Agent worktrees:** `isolation: "worktree"` creates the worktree in the parent `Code Projects` repo (Estimator_Quiz), not this one. Have builders run `git -C "<this folder>" worktree add .claude/worktrees/<name> -b <branch>` themselves. Remove with `git worktree remove --force` (OneDrive locks files; a plain remove can fail "Permission denied").
 - **app.js keeps typed input values across re-renders** (by element id). An input whose value the screen sets itself must carry `data-nokeep` (Plan's Start box), or the old value sticks.
-- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this); bump `CACHE` when the shell list changes (now `pb-v3`).
+- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this); bump `CACHE` when the shell list changes (now `pb-v6`).
 - Repo is public: never commit real partner data. Test account `claude-test-pb@example.com` (creds in gitignored `.claude/test/credentials.txt`); it holds test data. Guest (anonymous) mode is fine for headless checks; each run makes one anonymous Firebase user (harmless).
 - iOS home-screen app: Google sign-in redirect can't complete on GitHub Pages (Fitness Tracker lesson); app uses email only.
 - SSC: card deals not always honored; Tim says deals carry over year to year.
@@ -53,9 +54,14 @@ All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, th
   - Cycle: red period / gold fertile / dashed predicted; Started/Ended open a date picker; mode + usual length in History editor; asks (never auto-fixes) on a missed period; "Predictions paused" when very late; next-period .ics at 9 AM two days before; weeks start Sunday.
   - Plan: default budget $20; preset names Provo dance / Pleasant Grove / The Rift / Redline; Pleasant Grove moved to Sat 10am (donut shop closed at night); Google Maps for the whole route, Apple Maps per stop; stops with no known price left out of auto plans; jacket Oct/Apr, coat Nov–Mar.
 
+  - Wave 3: Home check-in question on Sundays, little-things nudge otherwise, tap card = next; milestones 100/200/500/1000 days (365 skipped when yearly); spending colour green to 60% of budget, red at 100%; budget under Holidays in Settings; gift chips "From her profile" (colors skipped, allergies/dislikes excluded + red warning); flowers remind every 2 weeks, others monthly; Patterns after 3 logs; bad weather = rain/snow ≥50%, storm, <35° or high ≥95°; coat <48°, jacket <62°; Plan "Talk" line (40 questions); drive legs +2 min parking.
+- Open for Tim: Daylight Donuts — a PG store exists (125 E State Rd, Pleasant Grove) but the SSC card lists the deal at Saratoga Springs; plan uses Saratoga (PG preset 61 min driving). His call.
+
 ## NOT verified
 - Anything on a real iPhone, including .ics import and Plan's "near me" location.
-- Plan drive times are straight-line estimates (×1.3 ÷ 40 km/h + 2 min); the Pleasant Grove plan shows 93 min where Tim expected ~30. Date #1 totals $38 vs his $15–20 budget.
+- Plan drive times now come from OSRM (`data/drive-times.json`, rebuild with `node data/build-drive-times.mjs` after changing stops); only "Near me" uses the estimate. Date #1 totals $38 vs his $15–20 budget.
+- Wave 3 on screen: Home's gift-reminder/date-gap/cycle card variants, Plan "Near me" and offline forecast, Dates Past with many rows (scroll inside list) — unit tests only. Stop opening hours (e.g. BYU MOA on a Fri evening) not audited.
+- Gift allergy check matches words only ("Reese's" isn't flagged against peanuts).
 - Daylight Donuts uses the card's Saratoga Springs location (Tim wrote PG); Mooyah, Redline, Yummy Ice Cream coords approximate; food prices are estimates.
 - Plan logging confirmed only in guest mode on localhost (uses left dropped 3 → 2); not confirmed with the email test account on live.
 
@@ -64,9 +70,13 @@ All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, th
 - ~~Web push reminders~~ · 2026-10-15 · needs Cloud Functions (Blaze, card)
 - ~~Couples mode~~ · 2026-10-15 · Tim chose "me now, public later"
 - ~~Flo for Partners instead of our tracker~~ · 2026-10-15 · Tim: log it himself
+- ~~Local events feed~~ · 2026-10-15 · no reliable free CORS source; goes stale
+- ~~Photos in memories~~ · 2026-10-15 · Firebase Storage needs paid plan
+- ~~Arguments ↔ cycle timing~~ · 2026-10-15 · privacy; Tim's call, not offered yet
+- ~~Other cities/cards, share plan with her, couples mode~~ · 2026-10-15 · "public later", Tim decides
 
 ## Map
 - `index.html`, `js/app.js` (screen registry; contract at top), `js/ui.js` (shared UI), `js/backend.js` (Firebase + generic lists), `js/logic/*` (pure, tested), `js/screens/*` + `css/*`, `sw.js`, `firestore.rules`
 - `data/` datasets + builders · `docs/` plans (`slice1-plan.md`, `wave2-plan.md`), research, SSC transcription, Tim's date notes
-- Tests: `node tests/run.mjs` · last run 2026-10-15: 119 passed. Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (35/35)
+- Tests: `node tests/run.mjs` · last run 2026-10-15: 161 passed. Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (38/38)
 - Live: https://timothyhadfield.github.io/perfect-boyfriend/ · hosting: GitHub Pages
