@@ -1,0 +1,14 @@
+/* Her > Profile styles (js/screens/profile.js). Compact one-line rows. */
+.about-grid { display: flex; flex-direction: column; gap: 2px; }
+.about-sec { min-width: 0; }
+.about-sec .sec-row { min-height: 36px; }
+.kv { min-height: 38px; padding: 6px 0; align-items: baseline; gap: 10px; }
+.kv-label { flex: none; max-width: 45%; color: var(--ink-faint); font-size: var(--fs-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kv-label.solo { max-width: none; flex: 1; color: var(--ink); font-size: var(--fs-lg); }
+.kv-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+
+/* Laptop: two columns. */
+@media (min-width: 860px) {
+  .about-grid { display: block; columns: 2; column-gap: 40px; max-width: 1320px; }
+  .about-sec { break-inside: avoid; padding-bottom: 14px; }
+}

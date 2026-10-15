@@ -117,7 +117,7 @@ export async function start() {
 
 function needUser() {
   if (!ctx || !user) {
-    const e = new Error('Not connected to the cloud yet.');
+    const e = new Error('Not connected yet.');
     e.code = 'not-ready';
     throw e;
   }
@@ -259,16 +259,16 @@ const MESSAGES = {
   'auth/invalid-login-credentials': 'Wrong email or password.',
   'auth/too-many-requests': 'Too many tries. Wait a few minutes.',
   'auth/network-request-failed': 'No connection. Try again when online.',
-  'auth/operation-not-allowed': 'Email sign-up isn\'t switched on yet. You can keep using the app as a guest.',
+  'auth/operation-not-allowed': 'Email sign-up is off. Guest mode still works.',
   'auth/admin-restricted-operation': 'Cloud sign-in isn\'t switched on yet.',
   'auth/configuration-not-found': 'Cloud sign-in isn\'t set up yet.',
   'auth/unauthorized-domain': 'This site isn\'t allowed to sign in yet.',
   'permission-denied': 'The cloud blocked this. Try again later.',
   'failed-precondition': 'The cloud database isn\'t ready yet.',
   'not-found': 'The cloud database isn\'t set up yet.',
-  unavailable: 'Offline. Changes are kept on this device and sync later.',
-  'not-ready': 'Not connected to the cloud yet.',
-  'sdk-load': 'Couldn\'t load the cloud code. Check your connection.',
+  unavailable: 'Offline. Changes will sync later.',
+  'not-ready': 'Not connected yet.',
+  'sdk-load': 'Can\'t reach the cloud. Check your connection.',
 };
 
 export function friendlyError(err) {

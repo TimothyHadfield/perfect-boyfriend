@@ -1,0 +1,12 @@
+/* Settings screen styles (js/screens/settings.js). */
+.settings-row { margin-bottom: 4px; }
+
+/* Holiday switches: two columns, one compact cell each. */
+.switch-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+.switch-cell { gap: 8px; border-bottom: 1px solid var(--rule-soft); min-height: 48px; }
+.switch-cell > span { font-size: var(--fs-md); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (min-width: 860px) {
+  .screen-settings .pane > * { max-width: 640px; }
+  .switch-cell > span { font-size: var(--fs-lg); }
+}
