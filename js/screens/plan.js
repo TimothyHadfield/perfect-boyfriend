@@ -1,18 +1,28 @@
 // Plan: the Orem date planner (the center hub tab).
 // Builds cheap, close-together plans from data/plan-stops.json + Tim's SSC card deals.
-// "We did this" saves a dateLog row and one sscUses row per card deal used.
+// "We did this" saves a dateLog row (with stopIds) and one sscUses row per card deal used.
+// Also loads data/drive-times.json (road times) and the Open-Meteo forecast (js/logic/weather.js); both optional.
+// Auto plans learn from S.dateLog (skip recent and 'meh' stops, favor 'loved'); Tim's plans are never filtered.
 // Contract: see the top of js/app.js. Styles: css/plan.css. Logic: js/logic/plan.js.
 import { esc, svg, topbar, banner, help, flash } from '../ui.js';
 import {
   OREM, VIBES, TIM_PLANS, dayName, fmtTime, makePlan, planFromStops, swapStop, weekAhead, defaultDay,
-  mapsUrl, appleMapsUrl, logRows, dealLabel, stopPoint,
+  mapsUrl, appleMapsUrl, logRows, dealLabel, stopPoint, driveTable, toMin,
 } from '../logic/plan.js';
+import { getForecast, badWeather, wxKind } from '../logic/weather.js';
 
 const ICON = {
   swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
   shuffle: '<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.6 0 2.7-1.6 3.6-3.6M13 9.6C13.9 8.1 14.9 7 16.5 7H20M17.5 4.5 20 7l-2.5 2.5M17.5 14.5 20 17l-2.5 2.5"/>',
   map: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4zM9 4v14M15 6v14"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  partly: '<path d="M8.5 4.5v1.2M3.8 9.2H5M5.2 5.9l.9.9M12.3 6.6a3.6 3.6 0 0 0-6.1 3.1"/><path d="M8 19.5h9a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6 1.3A2.9 2.9 0 0 0 8 19.5z"/>',
+  cloud: '<path d="M7 18.5h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 18.5z"/>',
+  fog: '<path d="M7 14.5h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 14.5zM5 18h14M8 21h8"/>',
+  rain: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
+  snow: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM8 19h.01M12 18h.01M16 19h.01M10 21.5h.01M14 21.5h.01"/>',
+  storm: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM12.5 15l-2 3.5h3l-2 3.5"/>',
 };
 const ico = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
@@ -25,16 +35,35 @@ const st = {
   plan: null, sig: '', usesSeen: -1,
   swapEx: {},           // stop index -> ids already shown there
   logged: {},           // plan key + date -> true after "We did this"
+  times: null,          // road drive times (data/drive-times.json), or null -> estimates
+  wx: null,             // forecast by 'YYYY-MM-DD', or null (offline)
+  mine: new Set(),      // dateLog ids saved here this session (so logging doesn't reshuffle the plan)
 };
+
+const getJson = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
 
 function load(ctx) {
   if (st.stops || st.loading || typeof document === 'undefined') return;   // not in a browser (tests)
   st.loading = true;
-  fetch('data/plan-stops.json')
-    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then((j) => { st.stops = j.stops; })
+  // The forecast gets a short head start so the first plan can use it; if it's slow, it fills in later.
+  const wx = getForecast().then((d) => { st.wx = d; return d; });
+  Promise.all([
+    getJson('data/plan-stops.json'),
+    getJson('data/drive-times.json').then(driveTable).catch((err) => { console.warn('drive times', err); return null; }),
+    Promise.race([wx, new Promise((r) => setTimeout(r, 1500))]),
+  ])
+    .then(([j, times]) => { st.stops = j.stops; st.times = times; })
     .catch((err) => { console.warn('plan stops', err); st.loadErr = true; })
-    .finally(() => { st.loading = false; ctx.render(); });
+    .finally(() => { st.loading = false; ctx.render(); wx.then(() => ctx.render()); });
+}
+
+const wxFor = (ymd) => (st.wx && st.wx[ymd]) || null;
+
+// dateLog as the planner sees it, plus a short signature of it (rows logged on this screen don't count,
+// so "We did this" doesn't swap the plan you just logged).
+function history(ctx) {
+  const rows = (ctx.S.dateLog || []).filter((r) => !st.mine.has(r.id));
+  return { rows, sig: rows.map((r) => `${r.id}:${r.date}:${r.rating || ''}`).join(',') };
 }
 
 const byId = (id) => st.stops.find((s) => s.id === id);
@@ -46,13 +75,16 @@ function opts(ctx, w) {
   return {
     day: d.day, month: d.month, start: st.start, budget: st.budget, vibe: st.vibe,
     origin: st.origin, seed: st.seed, sscUses: ctx.S.sscUses || [],
+    times: st.times, weather: wxFor(d.ymd), history: history(ctx).rows, ymd: d.ymd,
   };
 }
 
-// Tim's plan as a plan, on its own weekday (the next one within the week).
+// Tim's plan as a plan, on its own weekday (the next one within the week). Never filtered by history or weather.
 function presetPlan(t, ctx, w) {
   const d = w.find((x) => x.day === t.day) || w[0];
-  const p = planFromStops(t.stops.map(byId), { day: t.day, month: d.month, firstAt: t.at, origin: st.origin, sscUses: ctx.S.sscUses || [] });
+  const p = planFromStops(t.stops.map(byId), {
+    day: t.day, month: d.month, firstAt: t.at, origin: st.origin, sscUses: ctx.S.sscUses || [], times: st.times, weather: wxFor(d.ymd),
+  });
   return p && { ...p, ymd: d.ymd, name: t.name };
 }
 
@@ -62,14 +94,16 @@ function currentPlan(ctx, w) {
     return t ? presetPlan(t, ctx, w) : null;
   }
   const o = opts(ctx, w);
-  const sig = JSON.stringify([st.ymd, o.start, o.budget, o.vibe, o.origin.lat, o.origin.lng, o.seed]);
+  // Weather only reshapes the plan when it turns bad; a nicer forecast just updates what to wear.
+  const wet = !!o.weather && badWeather(o.weather, toMin(o.start));
+  const sig = JSON.stringify([st.ymd, o.start, o.budget, o.vibe, o.origin.lat, o.origin.lng, o.seed, wet, history(ctx).sig]);
   const uses = (ctx.S.sscUses || []).length;
   if (sig !== st.sig) {
     st.sig = sig;
     st.swapEx = {};
     st.plan = makePlan(st.stops, o);
-  } else if (uses !== st.usesSeen && st.plan) {
-    // A use was logged: keep the same stops, refresh the deals and uses left.
+  } else if (st.plan && (uses !== st.usesSeen || st.plan.weather !== o.weather)) {
+    // A use was logged or the forecast came in: keep the same stops, refresh deals, uses left and what to wear.
     st.plan = planFromStops(st.plan.items.map((x) => x.stop), o) || makePlan(st.stops, o);
   }
   st.usesSeen = uses;
@@ -113,7 +147,7 @@ function timeline(plan) {
   return `<ol class="pl-tl">${plan.items.map((x, i) => {
     const s = x.stop;
     const wait = x.wait > 4 ? ` · ${x.wait} min early` : '';
-    const drive = x.drive ? `${x.drive} min drive${i === 0 ? ' from ' + from : ''}${wait}` : (i === 0 ? '' : `Same place${wait}`);
+    const drive = x.drive ? `${x.drive} min drive${x.est ? ' (est.)' : ''}${i === 0 ? ' from ' + from : ''}${wait}` : (i === 0 ? '' : `Same place${wait}`);
     const left = x.deal && x.deal.left !== Infinity ? ` · ${x.deal.left} left` : '';
     const sub = x.deal ? `${esc(dealLabel(x.deal.text))}${left}` : esc(s.home ? 'At home' : s.city || '');
     const name = s.home ? `<span class="pl-name">${esc(s.short || s.name)}</span>`
@@ -159,17 +193,21 @@ function planView(plan, ctx) {
   const logKey = plan.key + '@' + plan.ymd;
   const done = st.logged[logKey];
   const maps = mapsUrl(plan, st.origin);
+  const wx = plan.weather;
+  const kind = wx && wxKind(wx.code);
   return `<div class="pl-main">
     <div class="pl-sum">
-      <span><strong>$${plan.total}</strong> total</span><span class="pl-dot">·</span><span><strong>${plan.drive} min</strong> driving</span>
+      <span><strong>$${plan.total}</strong> total</span><span class="pl-dot">·</span><span><strong>${plan.drive} min</strong> ${plan.driveEst ? 'est. ' : ''}driving</span>
       ${plan.over ? '<span class="pl-over">over budget</span>' : ''}
-      ${help('Estimated for two, after card deals. Drive times are estimates: straight-line distance x 1.3 at city speed, plus parking.')}
+      ${help('For two, after card deals. Drives are road routes plus parking; "est." is a straight-line guess. Bad weather favors indoor stops.')}
       ${st.preset ? `<span class="pl-preset-tag">${esc(plan.name)}</span>` : ''}
+      ${wx ? `<span class="pl-wx" aria-label="Forecast high ${wx.hi}°, low ${wx.lo}°">${ico(kind)}${wx.hi}°</span>` : ''}
     </div>
     <div class="pl-body">${timeline(plan)}${miniMap(plan)}</div>
     <div class="pl-bw">
       <p><span class="pl-k">Bring</span>${esc(plan.bring.length ? plan.bring.join(', ') : 'Nothing special')}</p>
       <p><span class="pl-k">Wear</span>${esc(plan.wear)}</p>
+      ${plan.talk ? `<p class="pl-talk"><span class="pl-k">Talk</span><span>${esc(plan.talk)}</span></p>` : ''}
     </div>
     <div class="btn-row pl-actions">
       <button type="button" class="btn" id="pl-shuffle">${ico('shuffle')}${st.preset ? 'New plan' : 'Shuffle'}</button>
@@ -262,7 +300,9 @@ export default {
       if (!ctx.S.info.uid) { flash('Not connected yet.'); return; }
       const rows = logRows(plan, plan.ymd);
       try {
-        ctx.backend.saveListItem('dateLog', { id: ctx.backend.newListId('dateLog'), ...rows.dateLog });
+        const id = ctx.backend.newListId('dateLog');
+        st.mine.add(id);
+        ctx.backend.saveListItem('dateLog', { id, ...rows.dateLog });
         for (const u of rows.sscUses) ctx.backend.saveListItem('sscUses', { id: ctx.backend.newListId('sscUses'), ...u });
       } catch (err) { flash(ctx.backend.friendlyError(err)); return; }
       st.logged[plan.key + '@' + plan.ymd] = true;

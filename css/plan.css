@@ -78,6 +78,9 @@
 .pl-dot { color: var(--ink-faint); }
 .pl-over { font-size: var(--fs-sm); font-weight: 700; color: var(--danger); }
 .pl-preset-tag { margin-left: auto; font-size: var(--fs-sm); font-weight: 700; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; }
+.pl-wx { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-sm); font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.pl-preset-tag + .pl-wx { margin-left: 4px; }
+.pl-wx svg { width: 17px; height: 17px; }
 
 .pl-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .pl-tl { list-style: none; margin: 0; padding: 0; }
@@ -102,6 +105,8 @@ a.pl-name:active { color: var(--accent); }
 
 .pl-bw { flex: none; display: flex; flex-direction: column; gap: 1px; font-size: var(--fs-md); color: var(--ink-soft); }
 .pl-bw p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-bw p.pl-talk { display: flex; white-space: normal; }
+.pl-talk .pl-k { flex: none; padding-top: 2px; }
 .pl-k { display: inline-block; width: 46px; margin-right: 10px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
 .pl-actions { flex: none; gap: 8px; }
 .pl-actions .btn { padding: 0 10px; text-decoration: none; font-size: var(--fs-md); }
