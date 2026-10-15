@@ -1,1 +1,106 @@
-/* Cycle screen styles (js/screens/cycle.js). Owned by that screen only. */
+/* Cycle screen styles (js/screens/cycle.js). Owned by that screen only.
+   Phone: status, calendar, buttons, help stacked to fit with no page scroll.
+   Laptop: status + calendar on the left, buttons + help on the right. */
+
+.cy {
+  --cy-red: var(--danger);
+  --cy-red-soft: rgb(217 97 74 / .22);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "status" "q" "cal" "actions" "help";
+  gap: 8px;
+}
+.cy-status { grid-area: status; }
+.cy-q { grid-area: q; }
+.cy-cal { grid-area: cal; }
+.cy-actions { grid-area: actions; }
+.cy-help { grid-area: help; }
+
+/* status */
+.cy-status-top { display: flex; align-items: center; gap: 6px; }
+.cy-big {
+  flex: 1;
+  min-width: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.cy-ics { margin-right: -6px; }
+.cy-sub { font-size: var(--fs-lg); color: var(--ink-soft); margin-top: 2px; }
+.cy-fert-tag { color: var(--accent); font-weight: 600; }
+.cy-acc { font-size: var(--fs-md); color: var(--ink-faint); margin-top: 2px; }
+
+/* question (missed log / same period) */
+.cy-q {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1px 0 1px 10px;
+  border-left: 3px solid var(--accent);
+}
+.cy-q-text { flex: 1; min-width: 0; font-size: var(--fs-md); }
+.cy-q .cy-q-btn { min-height: 32px; padding: 0 12px; font-size: var(--fs-md); }
+
+/* calendar */
+.cy-cal-head { display: flex; align-items: center; justify-content: space-between; }
+.cy-month { font-weight: 700; font-size: var(--fs-lg); }
+.cy-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cy-wd span { text-align: center; font-size: var(--fs-xs); font-weight: 700; color: var(--ink-faint); padding: 2px 0; }
+.cy-day { display: grid; place-items: center; height: 29px; font-variant-numeric: tabular-nums; }
+.cy-day b {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--ink);
+  border: 1.5px solid transparent;
+}
+.cy-day.out b { color: var(--ink-faint); opacity: .45; }
+.cy-day.range b { border: 1.5px dashed var(--cy-red); }
+.cy-day.likely b { background: var(--cy-red-soft); }
+.cy-day.logged b { background: var(--cy-red); color: #1A0805; font-weight: 700; }
+.cy-day.fertile b { color: var(--accent); font-weight: 700; background: var(--accent-dim); }
+.cy-day.today b { box-shadow: 0 0 0 2px var(--ink); }
+
+/* buttons */
+.cy-actions { display: flex; gap: 8px; }
+.cy-actions .btn { flex: 1; padding: 0 10px; }
+.cy-actions .btn[disabled] { opacity: .4; cursor: default; }
+.cy-actions .cy-hist { flex: none; width: 48px; padding: 0; }
+.cy-actions .cy-hist svg { width: 20px; height: 20px; }
+
+/* how to help */
+.cy-help .sec-head { border-bottom: 1px solid var(--rule); }
+.cy-tips {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 22px;
+  margin: 6px 0 0;
+  padding-left: 16px;
+  font-size: var(--fs-md);
+  color: var(--ink-soft);
+}
+.cy-tips li { margin: 2px 0; }
+.cy-tips li::marker { color: var(--accent); }
+
+@media (min-width: 860px) {
+  .cy {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "status actions" "cal q" "cal help";
+    grid-template-rows: auto auto 1fr;
+    column-gap: 48px;
+    row-gap: 14px;
+    max-width: 1000px;
+    align-items: start;
+  }
+  .cy-big { font-size: 30px; }
+  .cy-actions { align-self: center; }
+  .cy-day { height: 44px; }
+  .cy-day b { width: 38px; height: 38px; }
+  .cy-tips { grid-template-columns: minmax(0, 1fr); font-size: var(--fs-lg); }
+  .cy-tips li { margin: 4px 0; }
+}
