@@ -23,7 +23,7 @@ All of wave 2 is merged and live. Waiting on Tim's reaction (real iPhone use, th
 
 ## Authorized next steps
 - 2026-10-15 · Slice 1 and wave 2 (all four features) — done.
-- Nothing else open. Next work comes from Tim.
+- 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement"): 4 builders running (w3-home, w3-plan, w3-history, w3-gifts-args). Groundwork done: `monthlyBudget` in settings (rules deployed, 38/38). At merge: add their new logic/data files to sw.js + bump CACHE.
 
 ## Standing instructions (Tim's words)
 - "Right now we'll just focus on Orem Utah and Pair it with the Starving Student Card"
