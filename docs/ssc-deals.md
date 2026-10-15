@@ -2,7 +2,7 @@
 
 Transcribed 2026-10-15 from Tim's 10 photos of his physical card. **421 deals.** Machine-readable copy: [`data/ssc-deals.json`](../data/ssc-deals.json). Cut-off text was filled from the official app preview (app.starvingstudentcard.com/preview).
 
-⚠ **The card says "Expires Oct 1, 2026".** If Tim gets the 2026-27 card, re-photograph it and diff. Many businesses repeat year to year, but deals change.
+The card says "Expires Oct 1, 2026". **Tim: "just ignore the expiration date, the deals are nearly the same across years."** Use these as current.
 
 ## Card rules (verbatim)
 > Not just for students! ANYONE can support a STUDENT and use Starving Student Cards!
@@ -13,11 +13,10 @@ Transcribed 2026-10-15 from Tim's 10 photos of his physical card. **421 deals.**
 
 Uses: ①②③ = 3, ①② = 2, ① = 1, or "no limit". "(N used)" = circles Tim has blacked out.
 
-## Still unreadable (ask Tim)
-- Yummy's Korean BBQ, FREE! 2 Pcs Man… (probably "Mandu"; location limit cut off)
-- DryBarComedy.com 2-4-1 code (starts "DBS…")
-- Escapes In Time 50% OFF code
-- Durfey Dry Cleaners "Up to $__" cap
+## Resolved by Tim (2026-10-15)
+DryBarComedy code **DBSSC** (Provo) · Escapes In Time code **SSC** · Yummy's Korean BBQ **2 Pcs Mandoo** · Durfey Dry Cleaners **up to $20**, all Utah County locations.
+
+## Still uncertain (minor)
 - Ike's (Lehi): number of uses (worn off; recorded as 1)
 - MilkShake Factory "Any Milkshake": pen X over the circle, recorded as used
 
@@ -108,7 +107,7 @@ Uses: ①②③ = 3, ①② = 2, ① = 1, or "no limit". "(N used)" = circles Ti
 | 1 | UVU Scoops | FREE! 22 oz. Fountain Drink! |  | Orem (UVU) | Its (1) is printed at the end of the line, inside the UVU block. |
 | 1 | Wingstop | FREE! 5 Boneless Wings! | All Northern UT locations |  |  |
 | 1 | Yogurtland | FREE! First 5 Ounces of Yogurt! |  |  | Clear on P4; P3 top shows it creased. |
-| 1 | Yummy's Korean BBQ | FREE! 2 Pcs Man... |  | Orem / Provo | ⚠ low confidence. Last line before Treats & Drinks, crushed into the fold on both P4 and P3. Readable: 'Yummy's Korean BBQ, FREE! 2 Pcs Man'; the rest is torn/creased. Yummy's menu has Mandu (fried dumplings), so most likely '2 Pcs Mandu!' but not confirmed. Any location limit at the end of the line is unreadable. |
+| 1 | Yummy's Korean BBQ | FREE! 2 Pcs Mandoo! |  | Orem / Provo | Read by Tim 2026-10-15 |
 
 ## Treats & Drinks (88)
 
@@ -380,8 +379,8 @@ Uses: ①②③ = 3, ①② = 2, ① = 1, or "no limit". "(N used)" = circles Ti
 | 1 | Dragon's Keep | Buy 1 Graphic Novel, Get 1 50% OFF! All Locations | All Locations | Orem |  |
 | 3 | Dreamwalk Park | Buy 1 Adult Ticket, Get a Child Ticket FREE! |  | Orem |  |
 | 3 | Dreamwalk Park | Buy 1 Adult Ticket, Get an Adult or Child Ticket 50% OFF! |  | Orem | Line end lost to glare/crease ("5..."); "50% OFF!" confirmed by the official SSC app preview (deal 2458). |
-| 1 | DryBarComedy.com | 2-4-1! Comedy Show Admission! Use Code DBS… | code DBS… (rest cut off) | Provo (Dry Bar, downtown) | ⚠ low confidence. Code starts "DBS" and the rest is lost to glare. Not in the SSC app preview (codes need login) or anywhere online. |
-| 1 | Escapes In Time | 50% OFF! Any Group Admission for One Room! Use Code … | code (cut off) | Orem | ⚠ low confidence. Code entirely lost to glare after "Use Code". SSC app preview confirms the deal (deal 1949) but hides codes behind login; not found online. |
+| 1 | DryBarComedy.com | 2-4-1! Comedy Show Admission! Use Code DBSSC | Provo · code DBSSC | Provo (Dry Bar, downtown) | Code read by Tim 2026-10-15 |
+| 1 | Escapes In Time | 50% OFF! Any Group Admission for One Room! Use Code SSC | code SSC | Orem | Code read by Tim 2026-10-15 |
 | 3 | FatCats | 2-4-1! Arcade Card! Up to $25 Provo | Up to $25; Provo | Provo |  |
 | 3 | FatCats | 50% OFF! 1 Hr Pool Table! Provo | Provo | Provo |  |
 | 3 | FatCats | 50% OFF! Bowling! Before 8 PM Provo | Before 8 PM; Provo | Provo |  |
@@ -447,7 +446,7 @@ Uses: ①②③ = 3, ①② = 2, ① = 1, or "no limit". "(N used)" = circles Ti
 | 2 | Chiropractic: Axcess Accident Center | Buy 1 Chiropractic Adjustment or Acupuncture Treatment For Only $15! All Locations | All Locations | Provo | Middle of the line lost to glare ("Chiropracti..."); "Adjustment or" filled from the SSC app preview ("Chiropractic Adjustment or Acupuncture Treatment for $15!", deal 1726). Exact card wording of the hidden part may differ slightly. |
 | 2 | Chiropractic: Axcess Accident Center | Ozone Injection for Only $30! |  | Provo | Line end lost to glare after "Ozone Injection"; "for Only $30!" from the SSC app preview (deal 1727). Exact card wording of the hidden part may differ slightly. |
 | 1 | Classy Smiles | 50% OFF! Luxe or Luxe Duo Teeth Whitening! |  | Orem | End ("Whitening!") lost to glare; confirmed by the SSC app preview (deal 2527). |
-| 2 | Durfey Dry Cleaners | 2-4-1! Dry Cleaned or Laundered Item! Up to $?? All Ut Cnty Locs | Up to $?? (amount unreadable); All Ut Cnty Locs | Provo | ⚠ low confidence. The "Up to $__" cap is lost to glare. SSC app preview shows the deal ("Buy One Dry Cleaned or Laundered Item, Get One FREE!", 2 uses) but no cap; not found online. |
+| 2 | Durfey Dry Cleaners | 2-4-1! Dry Cleaned or Laundered Item! Up to $20! All Ut Cnty Locs | Up to $20; All Ut Cnty Locs | Provo | Cap read by Tim 2026-10-15 |
 | 1 | Fabulous Freddy's | 2-4-1! Basic Car Wash! Lehi | Lehi | Lehi |  |
 | 1 | Fabulous Freddy's | 2-4-1! VIP Car Wash! Lehi | Lehi | Lehi |  |
 | no limit | FORGE Jewelry Works | 30% OFF! Any Jewelry Item! Excl. Loose Diamonds/Gemstones | Excl. Loose Diamonds/Gemstones | Provo |  |

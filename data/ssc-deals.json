@@ -1086,14 +1086,14 @@
    "id": "free-084",
    "section": "Free Stuff",
    "business": "Yummy's Korean BBQ",
-   "deal": "FREE! 2 Pcs Man...",
+   "deal": "FREE! 2 Pcs Mandoo!",
    "uses": 1,
    "used": 0,
    "limits": null,
    "code": null,
    "where": "Orem / Provo",
-   "confidence": "low",
-   "note": "Last line before Treats & Drinks, crushed into the fold on both P4 and P3. Readable: 'Yummy's Korean BBQ, FREE! 2 Pcs Man'; the rest is torn/creased. Yummy's menu has Mandu (fried dumplings), so most likely '2 Pcs Mandu!' but not confirmed. Any location limit at the end of the line is unreadable."
+   "confidence": "high",
+   "note": "Read by Tim 2026-10-15"
   },
   {
    "id": "treats-001",
@@ -4297,27 +4297,27 @@
    "id": "entertainment-017",
    "section": "Entertainment",
    "business": "DryBarComedy.com",
-   "deal": "2-4-1! Comedy Show Admission! Use Code DBS…",
+   "deal": "2-4-1! Comedy Show Admission! Use Code DBSSC",
    "uses": 1,
    "used": 0,
-   "limits": null,
-   "code": "DBS… (rest cut off)",
+   "limits": "Provo",
+   "code": "DBSSC",
    "where": "Provo (Dry Bar, downtown)",
-   "confidence": "low",
-   "note": "Code starts \"DBS\" and the rest is lost to glare. Not in the SSC app preview (codes need login) or anywhere online."
+   "confidence": "high",
+   "note": "Code read by Tim 2026-10-15"
   },
   {
    "id": "entertainment-018",
    "section": "Entertainment",
    "business": "Escapes In Time",
-   "deal": "50% OFF! Any Group Admission for One Room! Use Code …",
+   "deal": "50% OFF! Any Group Admission for One Room! Use Code SSC",
    "uses": 1,
    "used": 0,
    "limits": null,
-   "code": "(cut off)",
+   "code": "SSC",
    "where": "Orem",
-   "confidence": "low",
-   "note": "Code entirely lost to glare after \"Use Code\". SSC app preview confirms the deal (deal 1949) but hides codes behind login; not found online."
+   "confidence": "high",
+   "note": "Code read by Tim 2026-10-15"
   },
   {
    "id": "entertainment-019",
@@ -5103,14 +5103,14 @@
    "id": "retail-012",
    "section": "Retail, Auto & More",
    "business": "Durfey Dry Cleaners",
-   "deal": "2-4-1! Dry Cleaned or Laundered Item! Up to $?? All Ut Cnty Locs",
+   "deal": "2-4-1! Dry Cleaned or Laundered Item! Up to $20! All Ut Cnty Locs",
    "uses": 2,
    "used": 0,
-   "limits": "Up to $?? (amount unreadable); All Ut Cnty Locs",
+   "limits": "Up to $20; All Ut Cnty Locs",
    "code": null,
    "where": "Provo",
-   "confidence": "low",
-   "note": "The \"Up to $__\" cap is lost to glare. SSC app preview shows the deal (\"Buy One Dry Cleaned or Laundered Item, Get One FREE!\", 2 uses) but no cap; not found online."
+   "confidence": "high",
+   "note": "Cap read by Tim 2026-10-15"
   },
   {
    "id": "retail-013",
