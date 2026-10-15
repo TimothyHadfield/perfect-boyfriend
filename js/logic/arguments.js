@@ -71,6 +71,10 @@ export function topPhrase(texts) {
 
 export const RECENT_DAYS = 90;
 
+// Patterns stay hidden until this many entries (with a topic) are logged.
+export const PATTERN_MIN = 3;
+export const hasPatterns = (list) => (list || []).filter((e) => topicKey(e && e.topic)).length >= PATTERN_MIN;
+
 // One block per topic, ranked by the last 90 days, then all time, then most recent.
 export function patterns(list, today) {
   const groups = new Map();

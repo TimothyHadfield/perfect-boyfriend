@@ -173,6 +173,85 @@ export function profileHint(what, profileItems) {
   return '';
 }
 
+/* ---------------- from her profile ---------------- */
+
+// "Tulips, peonies; lilies" -> ['Tulips', 'peonies', 'lilies']
+export function splitValues(v) {
+  return String(v || '').split(/[,;\n/]+/).map((s) => s.trim().replace(/\s+/g, ' ').replace(/[.!]+$/, '')).filter((s) => s.length > 1);
+}
+
+// Allergy/dislike labels that name a category, not the thing itself ("Food: peanuts").
+// Used as a term only when the row has no details ("Dislikes: Flowers").
+const GENERIC = new Set(['food', 'foods', 'drink', 'drinks', 'candy', 'snack', 'snacks', 'flower', 'flowers', 'plant', 'plants',
+  'other', 'misc', 'general', 'allergy', 'allergies', 'medicine', 'medication', 'medications', 'pets', 'animals',
+  'smell', 'smells', 'scent', 'scents', 'thing', 'things', 'stuff', 'gift', 'gifts', 'severe', 'mild']);
+
+// Words for allergy matching: also folds "lilies"/"lily" and "candies"/"candy" together.
+const avoidWords = (s) => titleWords(s).map((w) => (w.length > 4 && w.endsWith('ie') ? w.slice(0, -2) + 'y' : w));
+
+function avoidTerms(profileItems) {
+  const out = [];
+  for (const kind of ['allergies', 'dislikes']) {
+    for (const it of profileItems || []) {
+      if (it.section !== kind) continue;
+      const label = String(it.label || '').trim();
+      const parts = splitValues(it.value);
+      const lw = titleWords(label);
+      if (label && (!parts.length || !lw.every((w) => GENERIC.has(w)))) parts.unshift(label);
+      for (const p of parts) {
+        const words = avoidWords(p);
+        if (words.length) out.push({ kind: kind === 'allergies' ? 'allergy' : 'dislike', term: p, words });
+      }
+    }
+  }
+  return out;
+}
+
+// The first allergy (then dislike) whose words all appear in this title, or null.
+// e.g. "Peanut butter cups" vs allergy "Peanuts" -> { kind: 'allergy', term: 'Peanuts' }
+export function conflictOf(title, profileItems) {
+  const set = new Set(avoidWords(title));
+  if (!set.size) return null;
+  for (const t of avoidTerms(profileItems)) {
+    if (t.words.every((w) => set.has(w))) return { kind: t.kind, term: t.term };
+  }
+  return null;
+}
+
+// Favorites that aren't something you buy.
+const NOT_GIFTS = new Set(['color', 'colour', 'colors', 'colours']);
+// Favorites label -> reminder preset used when it becomes a reminder.
+const LABEL_PRESET = [[/flower/i, 'flowers'], [/candy|chocolate/i, 'candy']];
+
+// Her Favorites as one-tap gift ideas. Never an allergy or dislike; never one already
+// in her ideas. Returns [{ title, label, preset }] in Profile order.
+export function profileSuggestions(profileItems, giftList) {
+  const ideas = ideasOf(giftList);
+  const out = [];
+  for (const it of profileItems || []) {
+    if (it.section !== 'favorites') continue;
+    const label = String(it.label || '').trim();
+    if (NOT_GIFTS.has(label.toLowerCase())) continue;
+    const preset = (LABEL_PRESET.find(([re]) => re.test(label)) || [null, ''])[1];
+    for (const v of splitValues(it.value)) {
+      const title = (v.charAt(0).toUpperCase() + v.slice(1)).slice(0, 200);
+      if (!titleWords(title).length) continue;
+      if (conflictOf(title, profileItems)) continue;
+      if (ideas.some((g) => sameGift(g.title, title))) continue;
+      const key = titleWords(title).join(' ');
+      if (out.some((s) => titleWords(s.title).join(' ') === key)) continue;
+      out.push({ title, label, preset });
+    }
+  }
+  return out;
+}
+
+// A reminder seeded from a suggestion: its preset's repeat, else monthly.
+export function reminderSeed(s) {
+  const p = PRESETS.find((x) => x.key === (s && s.preset));
+  return { what: String((s && s.title) || ''), every: p ? p.every : 1, unit: p ? p.unit : 'month' };
+}
+
 /* ---------------- reminders: repeating .ics ---------------- */
 
 const pad = (n, w = 2) => String(n).padStart(w, '0');
