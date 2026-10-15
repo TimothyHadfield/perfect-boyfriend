@@ -55,7 +55,7 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
   - Plan: default budget $20; preset names Provo dance / Pleasant Grove / The Rift / Redline; Pleasant Grove moved to Sat 10am (donut shop closed at night); Google Maps for the whole route, Apple Maps per stop; stops with no known price left out of auto plans; jacket Oct/Apr, coat Nov–Mar.
 
   - Wave 3: Home check-in question on Sundays, little-things nudge otherwise, tap card = next; milestones 100/200/500/1000 days (365 skipped when yearly); spending colour green to 60% of budget, red at 100%; budget under Holidays in Settings; gift chips "From her profile" (colors skipped, allergies/dislikes excluded + red warning); flowers remind every 2 weeks, others monthly; Patterns after 3 logs; bad weather = rain/snow ≥50%, storm, <35° or high ≥95°; coat <48°, jacket <62°; Plan "Talk" line (40 questions); drive legs +2 min parking.
-- Open for Tim: Daylight Donuts — a PG store exists (125 E State Rd, Pleasant Grove) but the SSC card lists the deal at Saratoga Springs; plan uses Saratoga (PG preset 61 min driving). His call.
+- 2026-10-15 · Tim: Daylight Donuts = the Pleasant Grove store (125 E State St), card deals kept there (`anyStore` in build-plan-stops.mjs) though the card names Saratoga Springs. PG preset now 34 min driving, $41.
 
 ## NOT verified
 - Anything on a real iPhone, including .ics import and Plan's "near me" location.
