@@ -84,7 +84,9 @@ function dayChips(w, sel) {
 }
 
 function controls() {
-  const timeOk = /^\d\d:\d\d$/.test(st.start) ? st.start : '18:00';
+  const t = st.preset && TIM_PLANS.find((x) => x.key === st.preset);
+  const shown = t ? t.at : st.start;
+  const timeOk = /^\d\d:\d\d$/.test(shown) ? shown : '18:00';
   return `<div class="pl-opts">
     <label class="pl-opt"><small>Start</small><input id="pl-start" type="time" value="${esc(timeOk)}"></label>
     <label class="pl-opt"><small>Budget</small><select id="pl-budget">${BUDGETS.map(([v, n]) =>
