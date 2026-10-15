@@ -1,1 +1,110 @@
-/* Gifts screen styles (js/screens/gifts.js). Owned by that screen only. */
+/* Gifts screen styles (js/screens/gifts.js). Owned by that screen only.
+   Phone: a segmented control picks one column. Laptop: three columns. */
+
+.gf-seg { flex: none; margin: 8px var(--pad) 0; }
+
+/* Phone: only the picked column shows; the pane scrolls inside. */
+.gf > .gf-col { display: none; }
+.gf[data-tab="ideas"] > [data-col="ideas"],
+.gf[data-tab="given"] > [data-col="given"],
+.gf[data-tab="reminders"] > [data-col="reminders"] { display: block; }
+.gf-head { display: none; }
+
+.gf-row { gap: 8px; }
+.gf-row > .row-main { align-self: stretch; justify-content: center; text-align: left; }
+button.gf-row { text-align: left; }
+.gf-before { color: var(--accent); }
+
+.gf-give {
+  flex: none;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink-soft);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  transition: transform 100ms, background var(--t);
+}
+.gf-give:active { transform: scale(.95); background: var(--raised-hi); }
+
+.gf-react { flex: none; font-size: 9px; letter-spacing: 2px; color: var(--ink-faint); }
+.gf-react.r2 { color: var(--ink-soft); }
+.gf-react.r3 { color: var(--accent); }
+
+/* Quick add: one line, + saves. */
+.gf-quick { display: flex; align-items: center; gap: 4px; margin-bottom: 2px; border-bottom: 1px solid var(--rule); }
+.gf-quick input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.gf-quick input::placeholder { color: var(--ink-faint); }
+.gf-quick input:focus { outline: none; }
+.gf-quick:focus-within { border-bottom-color: var(--accent); }
+.gf-quick .icon-btn { margin-right: -8px; color: var(--accent); }
+
+.gf-head-row { display: flex; align-items: center; justify-content: flex-end; min-height: 40px; }
+.gf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  color: var(--accent);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.gf-link svg { width: 16px; height: 16px; }
+
+/* Reminder presets: chips that wrap. */
+.gf-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0 8px; border-bottom: 1px solid var(--rule); }
+.gf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 34px;
+  padding: 0 11px 0 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  transition: transform 100ms, background var(--t);
+}
+.gf-chip svg { width: 14px; height: 14px; color: var(--accent); }
+.gf-chip:active { transform: scale(.95); background: var(--raised); }
+.gf-row .count { white-space: nowrap; }
+.gf-row .icon-btn.small { margin-right: -6px; color: var(--ink-faint); }
+
+/* Editors */
+.gf-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 10px; }
+.gf-every { display: flex; gap: 8px; align-items: stretch; }
+.gf-every input { flex: none; width: 64px !important; text-align: center; }
+.gf-every .seg { flex: 1; }
+.gf-hint { min-height: 1.3em; margin-top: -8px; font-size: var(--fs-md); color: var(--accent); }
+.form .seg button { min-height: 36px; }
+
+/* Laptop: three columns across the width, each list scrolls on its own. */
+@media (min-width: 860px) {
+  .gf-seg { display: none; }
+  .gf {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 36px;
+    max-width: 1320px;
+    overflow: hidden;
+  }
+  .gf > .gf-col { display: flex !important; flex-direction: column; min-height: 0; }
+  .gf-col > .list { flex: 1; min-height: 0; overflow-y: auto; }
+  .gf-head { display: flex; align-items: center; min-height: 40px; }
+  .gf-head-row { justify-content: space-between; }
+  .gf-head-row .gf-head { min-height: 0; }
+  .gf-row .row-title { font-size: 16px; }
+}
