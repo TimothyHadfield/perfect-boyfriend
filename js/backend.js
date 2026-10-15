@@ -198,16 +198,43 @@ export function saveHolidaySettings(holidays) {
   watchWrite(c.fs.setDoc(ref, { holidays: clean, updatedAt: c.fs.serverTimestamp() }, { merge: true }));
 }
 
-/* ---------------- later slices, read-only for Home ---------------- */
+/* ---------------- generic lists (wave 2 screens) ---------------- */
 
-// gifts and dateLog: their screens come in later slices. Home only reads them.
+// One doc per row at users/{uid}/{name}/{id}. Each screen owns the shape of its rows;
+// these helpers only check the list name, strip the id, and stamp updatedAt.
+export const LISTS = ['gifts', 'dateLog', 'giftReminders', 'cycles', 'arguments', 'sscUses'];
+function checkList(name) {
+  if (!LISTS.includes(name)) throw new Error('Unknown list ' + name);
+}
+
 // A read failure here stays quiet (it must not cover Home with an error).
 export function watchList(name, cb) {
-  if (!['gifts', 'dateLog'].includes(name)) throw new Error('Unknown list ' + name);
+  checkList(name);
   const c = needUser();
   const col = c.fs.collection(c.db, 'users', user.uid, name);
   return c.fs.onSnapshot(col, (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     (err) => console.warn('[backend] ' + name, err && err.code));
+}
+
+export function newListId(name) {
+  checkList(name);
+  const c = needUser();
+  return c.fs.doc(c.fs.collection(c.db, 'users', user.uid, name)).id;
+}
+
+export function saveListItem(name, item) {
+  checkList(name);
+  const c = needUser();
+  const { id, ...data } = item;
+  if (JSON.stringify(data).length > 50000) throw new Error('Too big to save.');
+  const ref = c.fs.doc(c.db, 'users', user.uid, name, id);
+  watchWrite(c.fs.setDoc(ref, { ...data, updatedAt: c.fs.serverTimestamp() }));
+}
+
+export function deleteListItem(name, id) {
+  checkList(name);
+  const c = needUser();
+  watchWrite(c.fs.deleteDoc(c.fs.doc(c.db, 'users', user.uid, name, id)));
 }
 
 // Firestore writes resolve only when the server confirms (never, offline).

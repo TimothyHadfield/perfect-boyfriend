@@ -5,7 +5,7 @@ rules_version = '2';
 //   users/{uid}/dates/{id}         one important date
 //   users/{uid}/profile/main       the "About her" profile ({items: [...]})
 //   users/{uid}/profile/settings   app settings ({holidays: {key: bool}})
-//   users/{uid}/gifts, dateLog, giftReminders, cycles   next slices (owner-only, shape not checked yet)
+//   users/{uid}/gifts, dateLog, giftReminders, cycles, arguments, sscUses   wave 2 lists (owner-only, shape not checked yet)
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -38,7 +38,7 @@ service cloud.firestore {
 
     // Collections for the next slices. Owner-only; add shape checks when built.
     match /users/{uid}/{coll}/{docId} {
-      allow read, write: if isOwner(uid) && coll in ['gifts', 'dateLog', 'giftReminders', 'cycles'];
+      allow read, write: if isOwner(uid) && coll in ['gifts', 'dateLog', 'giftReminders', 'cycles', 'arguments', 'sscUses'];
     }
   }
 }
