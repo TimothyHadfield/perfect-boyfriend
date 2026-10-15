@@ -34,7 +34,7 @@ const EXTRA = [
   { id: 'sub-zero-provo', name: 'Sub Zero Ice Cream', short: 'Sub Zero', kind: 'dessert', city: 'Provo', lat: 40.23407, lng: -111.65969, cost: 14, mins: 20, indoor: true, tags: ['cheap', 'novel'], hours: null },
   { id: 'parlor-doughnuts-pg', name: 'Parlor Doughnuts', short: 'Parlor Doughnuts', kind: 'dessert', city: 'Pleasant Grove', lat: 40.35844, lng: -111.76859, cost: 10, mins: 20, indoor: true, tags: ['cheap'], hours: null },
   { id: 'milkshake-factory-pg', name: 'MilkShake Factory', short: 'MilkShake Factory', kind: 'dessert', city: 'Pleasant Grove', lat: 40.35314, lng: -111.76357, cost: 14, mins: 20, indoor: true, tags: ['cheap'], hours: null },
-  { id: 'daylight-donuts', name: 'Daylight Donuts', short: 'Daylight Donuts', kind: 'dessert', city: 'Saratoga Springs', lat: 40.36449, lng: -111.91626, cost: 8, mins: 15, indoor: true, tags: ['cheap'], hours: null, note: 'Tim wrote PG; the card and the SSC app list it in Saratoga Springs, so that location is used' },
+  { id: 'daylight-donuts', name: 'Daylight Donuts', short: 'Daylight Donuts', kind: 'dessert', city: 'Pleasant Grove', lat: 40.35773, lng: -111.73820, cost: 8, mins: 15, indoor: true, tags: ['cheap'], hours: null, anyStore: true, note: '125 E State St, Pleasant Grove. The card lists the deal at Saratoga Springs; Tim chose the PG store (2026-10-15), so the deal may not be honored here' },
   { id: 'provo-bakery', name: 'Provo Bakery', short: 'Provo Bakery', kind: 'dessert', city: 'Provo', lat: 40.23493, lng: -111.65556, cost: 8, mins: 15, indoor: true, tags: ['cheap'], hours: null },
   { id: 'yummy-ice-cream-highland', name: 'Yummy Ice Cream', short: 'Yummy Ice Cream', kind: 'dessert', city: 'Highland', lat: 40.42718, lng: -111.78917, cost: 12, mins: 25, indoor: true, tags: ['cheap', 'arcade'], hours: null, note: 'Location is Highland town center (store address not found)' },
   { id: 'kreative-kiln-pg', name: 'The Kreative Kiln (pottery)', short: 'Kreative Kiln', kind: 'activity', city: 'Pleasant Grove', lat: 40.35412, lng: -111.75336, cost: 50, mins: 90, indoor: true, tags: ['creative', 'talky', 'keepsake'], hours: null, note: '844 S 800 W, Pleasant Grove: the store the card deals are for' },
@@ -126,7 +126,8 @@ function dealsFor(stop) {
     if (!hit) return false;
     // Location-limited lines ("Lehi", "Saratoga Springs") only count at that city's store.
     const where = (d.where || '') + ' ' + (d.limits || '');
-    if (d.where && !/multiple|all |all$|valid all|particip/i.test(where) && stop.city && stop.city !== 'Home') {
+    // anyStore: Tim chose a different store than the card names; keep its deals anyway.
+    if (d.where && !stop.anyStore && !/multiple|all |all$|valid all|particip/i.test(where) && stop.city && stop.city !== 'Home') {
       const w = d.where.toLowerCase();
       const c = stop.city.toLowerCase();
       if (!w.includes(c) && !(c === 'orem' && /uvu/.test(w))) return false;
@@ -239,7 +240,7 @@ for (const x of EXTRA) {
     cost: x.cost, mins: x.mins, indoor: x.indoor, tags: x.tags,
     days: h.days, open: h.open, close: x.close ?? h.close, months: x.months || null, slots: null,
     auto: x.auto !== false, pick: false, home: !!x.home, bring: x.bring, dealExtra: x.dealExtra,
-    priceNote: x.home ? null : 'estimate', note: x.note || null,
+    anyStore: x.anyStore || undefined, priceNote: x.home ? null : 'estimate', note: x.note || null,
   });
 }
 for (const s of out) {

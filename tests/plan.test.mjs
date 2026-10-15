@@ -25,7 +25,9 @@ test('data: Tim\'s picks are all stops, with real coordinates and card deals tha
     ok(s.cost >= 0 && s.mins > 0, s.id + ' cost/mins');
     for (const d of s.deals) ok(ids.has(d.id), s.id + ' deal ' + d.id);
   }
-  eq(S('daylight-donuts').city, 'Saratoga Springs');
+  // Tim chose the Pleasant Grove store (2026-10-15) and keeps the card's donut deal there.
+  eq(S('daylight-donuts').city, 'Pleasant Grove');
+  ok(S('daylight-donuts').deals.length > 0, 'daylight-donuts keeps its card deals');
   ok(S('tippin-point-country-dance').deals.some((d) => d.id === 'entertainment-063'), 'Utah Country Dance Wed deal on Tippin Point');
 });
 
