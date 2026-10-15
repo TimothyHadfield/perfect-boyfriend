@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// Each signed-in person (anonymous or email) reads and writes only their own
+// data, and only these places. Everything else is denied by default.
+//   users/{uid}/dates/{id}         one important date
+//   users/{uid}/profile/main       the "About her" profile ({items: [...]})
+//   users/{uid}/profile/settings   app settings ({holidays: {key: bool}})
+//   users/{uid}/gifts, dateLog, giftReminders, cycles   next slices (owner-only, shape not checked yet)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid}/dates/{dateId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['title', 'date', 'type', 'yearly', 'notes', 'updatedAt'])
+        && request.resource.data.title is string && request.resource.data.title.size() <= 200
+        && request.resource.data.date is string && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.type in ['birthday', 'anniversary', 'other']
+        && request.resource.data.yearly is bool
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 2000;
+    }
+
+    match /users/{uid}/profile/{docId} {
+      allow read, delete: if isOwner(uid) && docId in ['main', 'settings'];
+      allow create, update: if isOwner(uid) && (
+        (docId == 'main'
+          && request.resource.data.keys().hasOnly(['items', 'updatedAt'])
+          && request.resource.data.items is list
+          && request.resource.data.items.size() <= 500)
+        || (docId == 'settings'
+          && request.resource.data.keys().hasOnly(['holidays', 'updatedAt'])
+          && request.resource.data.holidays is map));
+    }
+
+    // Collections for the next slices. Owner-only; add shape checks when built.
+    match /users/{uid}/{coll}/{docId} {
+      allow read, write: if isOwner(uid) && coll in ['gifts', 'dateLog', 'giftReminders', 'cycles'];
+    }
+  }
+}
