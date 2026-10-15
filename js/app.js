@@ -118,7 +118,8 @@ function render() {
   const keep = pane && r === lastRoute ? pane.scrollTop : 0;
   const focusId = document.activeElement && document.activeElement.id;
   const typed = {};
-  if (r === lastRoute) app.querySelectorAll('input[id],textarea[id]').forEach((el) => { typed[el.id] = el.value; });
+  // A screen that sets an input's value itself marks it data-nokeep.
+  if (r === lastRoute) app.querySelectorAll('input[id]:not([data-nokeep]),textarea[id]').forEach((el) => { typed[el.id] = el.value; });
   const c = ctx();
   app.innerHTML = `${navbar(r)}<main class="screen screen-${r}">${scr.render(c)}</main>`;
   for (const [k, v] of Object.entries(typed)) { const el = document.getElementById(k); if (el) el.value = v; }
