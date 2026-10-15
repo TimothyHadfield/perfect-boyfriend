@@ -1,0 +1,8 @@
+/* Dates screen styles (js/screens/dates.js). */
+
+/* Laptop: two columns of rows across the width. */
+@media (min-width: 860px) {
+  .dates-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); column-gap: 40px; max-width: 1320px; }
+  .dates-list .row { min-height: 60px; }
+  .dates-list .row-title { font-size: 17px; }
+}

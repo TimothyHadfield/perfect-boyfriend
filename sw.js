@@ -3,13 +3,18 @@
 // code, and the cache is only the offline fallback, so a stale build can't
 // stick. The Firebase SDK (versioned URLs on gstatic) is cache-first.
 // Firestore/Auth traffic is never touched (Firestore has its own offline cache).
-const CACHE = 'pb-v1';
+const CACHE = 'pb-v2';
 const SHELL = [
   './',
   'index.html',
   'css/app.css',
   'js/app.js',
+  'js/ui.js',
   'js/backend.js',
+  'js/screens/home.js', 'js/screens/dates.js', 'js/screens/plan.js', 'js/screens/gifts.js', 'js/screens/profile.js',
+  'js/screens/cycle.js', 'js/screens/arguments.js', 'js/screens/account.js', 'js/screens/settings.js',
+  'css/home.css', 'css/dates.css', 'css/plan.css', 'css/gifts.css', 'css/profile.css',
+  'css/cycle.css', 'css/arguments.css', 'css/account.css', 'css/settings.css',
   'js/firebase-config.js',
   'js/logic/dates.js',
   'js/logic/ics.js',
