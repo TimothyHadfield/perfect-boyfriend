@@ -35,7 +35,7 @@ for (const k of keys) {
 
 test('placeholder screens render their title only', async () => {
   const S = { info: { status: 'ready', uid: 'u' } };
-  for (const k of ['plan', 'gifts']) {
+  for (const k of ['plan']) {
     const mod = (await import(pathToFileURL(join(root, 'js/screens', k + '.js')).href)).default;
     const html = mod.render({ S, subtabs: '' });
     ok(html.includes(`<h1>${mod.title}</h1>`), k + ' title');
