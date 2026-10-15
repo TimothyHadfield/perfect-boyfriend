@@ -4,7 +4,7 @@ rules_version = '2';
 // data, and only these places. Everything else is denied by default.
 //   users/{uid}/dates/{id}         one important date
 //   users/{uid}/profile/main       the "About her" profile ({items: [...]})
-//   users/{uid}/profile/settings   app settings ({holidays: {key: bool}})
+//   users/{uid}/profile/settings   app settings ({holidays: {key: bool}, monthlyBudget: number})
 //   users/{uid}/gifts, dateLog, giftReminders, cycles, arguments, sscUses   wave 2 lists (owner-only, shape not checked yet)
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,8 +32,12 @@ service cloud.firestore {
           && request.resource.data.items is list
           && request.resource.data.items.size() <= 500)
         || (docId == 'settings'
-          && request.resource.data.keys().hasOnly(['holidays', 'updatedAt'])
-          && request.resource.data.holidays is map));
+          && request.resource.data.keys().hasOnly(['holidays', 'monthlyBudget', 'updatedAt'])
+          && (!('holidays' in request.resource.data) || request.resource.data.holidays is map)
+          && (!('monthlyBudget' in request.resource.data)
+              || (request.resource.data.monthlyBudget is number
+                  && request.resource.data.monthlyBudget >= 0
+                  && request.resource.data.monthlyBudget <= 100000))));
     }
 
     // Collections for the next slices. Owner-only; add shape checks when built.

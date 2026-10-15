@@ -198,6 +198,14 @@ export function saveHolidaySettings(holidays) {
   watchWrite(c.fs.setDoc(ref, { holidays: clean, updatedAt: c.fs.serverTimestamp() }, { merge: true }));
 }
 
+// Monthly spending budget in dollars (dates + gifts); null clears it.
+export function saveMonthlyBudget(dollars) {
+  const c = needUser();
+  const ref = c.fs.doc(c.db, 'users', user.uid, 'profile', 'settings');
+  const v = dollars == null ? c.fs.deleteField() : Math.max(0, Math.min(100000, Math.round(Number(dollars) || 0)));
+  watchWrite(c.fs.setDoc(ref, { monthlyBudget: v, updatedAt: c.fs.serverTimestamp() }, { merge: true }));
+}
+
 /* ---------------- generic lists (wave 2 screens) ---------------- */
 
 // One doc per row at users/{uid}/{name}/{id}. Each screen owns the shape of its rows;
