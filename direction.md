@@ -17,11 +17,12 @@ Tim's words: "an app that aids partners with everything they might need to help 
 - Repo is public (for free GitHub Pages), so no secrets and no real partner data in it.
 
 ## Scope, in priority order
-1. Important dates with reminders, plus a partner profile ("about her": favorites, sizes, likes/dislikes, notes)
-2. Gift ideas tracker (ideas, given, how it went)
+1. **Home page** + important dates with reminders + partner profile ("about her": favorites, sizes, likes/dislikes, notes). Tim: "Make a home page that shows when your last date was, last gift, upcoming important dates (holidays, birthday, anaverssary) as well as any suggested ideas."
+2. Gift ideas tracker (ideas, given, how it went) + **automatic recurring gift reminders**. Tim: "for gifts, allow the user to set up automatic reminders for certain things like flowers, or candy or anything like that."
 3. Common arguments: **private log** of recurring arguments, what set them off, what resolved them, to spot patterns
-4. Orem date planner: real spots + Starving Student Card deals (Tim sends screenshots of the deals), combined into cheap plans of stops close to each other
+4. Orem date planner: real spots + Starving Student Card deals (transcribed from Tim's card photos, 2026-10-15), combined into cheap plans of stops close to each other. Each plan shows **expected total price**, **materials to bring**, **driving times**, **what to wear**. Tim: "remember to show expected total price on the expense for each date, as well as reminders to bring any materials, calculations for driving times, what to wear, etc." His example plans: `docs/tim-date-notes.md`.
 5. Date log / planning (what we did, what she liked)
+6. **Period tracker** that predicts future periods and says how to treat her in each phase. Tim: "allow the user to track their girlfriends period so they can know specific things like how to treat them or whatnot. I like flo's period tracker and how it's smart and will predict future period and whatnot. Check how the algorithm has changed for this." Research: `docs/cycle-research.md`.
 
 ## Parking lot (explicitly later / out)
 - Other cities · Orem first
