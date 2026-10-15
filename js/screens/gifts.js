@@ -7,23 +7,29 @@ import { icsFileName } from '../logic/ics.js';
 import {
   OCCASIONS, REACTIONS, UNITS, PRESETS, occasionName, reactionName, ideasOf, givenOf, givenBefore,
   priceLabel, parsePrice, validReminder, remindersSorted, nextLabel, everyLabel, timeLabel, profileHint,
-  buildReminderIcs, todayYMD,
+  buildReminderIcs, todayYMD, profileSuggestions, conflictOf, reminderSeed,
 } from '../logic/gifts.js';
 
 const TABS = [['ideas', 'Ideas'], ['given', 'Given'], ['reminders', 'Reminders']];
 let tab = 'ideas';
+let sugg = [];   // profile suggestions from the last render (chips refer to them by index)
 
 const fmtDay = (ymd) => { const p = parseYMD(ymd); return p ? shortDate(p, p.y !== new Date().getFullYear()) : ''; };
 
 /* ---------------- rows ---------------- */
 
-function ideaRow(g, all) {
+function ideaRow(g, all, profile) {
   const before = givenBefore(g, all);
+  const bad = conflictOf(g.title, profile);
   const sub = [priceLabel(g.price), occasionName(g.occasion), g.where].filter(Boolean).map(esc).join(' · ');
+  const lead = [
+    bad ? `<span class="gf-warn">${bad.kind === 'allergy' ? 'Allergy' : 'Dislikes'}: ${esc(bad.term)}</span>` : '',
+    before ? `<span class="gf-before">gave ${esc(fmtDay(before.date))}</span>` : '',
+  ].filter(Boolean).join(' · ');
   return `<div class="row gf-row">
     <button class="row-main" data-edit-idea="${esc(g.id)}">
       <span class="row-title">${esc(g.title || 'Untitled')}</span>
-      ${sub || before ? `<span class="row-sub">${before ? `<span class="gf-before">gave ${esc(fmtDay(before.date))}</span>${sub ? ' · ' : ''}` : ''}${sub}</span>` : ''}
+      ${sub || lead ? `<span class="row-sub">${lead}${lead && sub ? ' · ' : ''}${sub}</span>` : ''}
     </button>
     <button class="gf-give" data-give="${esc(g.id)}">Given</button>
   </div>`;
@@ -58,6 +64,15 @@ function render({ S }) {
   const given = givenOf(all);
   const rems = S.info.uid ? remindersSorted(S.giftReminders || [], today) : [];
   const profile = S.profile || [];
+  sugg = profileSuggestions(profile, all);
+
+  // From her profile: one line of chips; + adds an idea, the calendar makes a reminder.
+  const suggStrip = sugg.length ? `<div class="gf-sugg">
+      <span class="gf-sugg-k">From her profile${help('Her Favorites, minus her allergies and dislikes.')}</span>
+      <div class="gf-sugg-row">${sugg.map((s, i) => `<span class="gf-sg">
+        <button class="gf-sg-add" data-sugg-add="${i}" aria-label="Add ${esc(s.title)} to ideas">${svg('plus')}${esc(s.title)}</button>
+        <button class="gf-sg-rem" data-sugg-rem="${i}" aria-label="Remind me: ${esc(s.title)}">${svg('cal')}</button></span>`).join('')}</div>
+    </div>` : '';
 
   const ideasCol = `<section class="gf-col" data-col="ideas">
     <h2 class="sec-head gf-head">Ideas</h2>
@@ -65,7 +80,8 @@ function render({ S }) {
       <input id="gf-quick" maxlength="200" placeholder="Add an idea" aria-label="Gift idea">
       <button class="icon-btn" aria-label="Add idea">${svg('plus')}</button>
     </form>
-    ${ideas.length ? `<div class="list">${ideas.map((g) => ideaRow(g, all)).join('')}</div>` : '<p class="empty">No ideas yet.</p>'}
+    ${suggStrip}
+    ${ideas.length ? `<div class="list">${ideas.map((g) => ideaRow(g, all, profile)).join('')}</div>` : '<p class="empty">No ideas yet.</p>'}
   </section>`;
 
   const givenCol = `<section class="gf-col" data-col="given">
@@ -223,13 +239,14 @@ function openGivenEditor(ctx, g) {
   });
 }
 
-function openReminderEditor(ctx, id, presetKey) {
+// seed: optional {what, every, unit} for a new reminder (from a profile suggestion).
+function openReminderEditor(ctx, id, presetKey, seed) {
   if (!canWrite(ctx)) return;
   const existing = id ? (ctx.S.giftReminders || []).find((x) => x.id === id) : null;
   let newId;
   try { newId = existing ? existing.id : ctx.backend.newListId('giftReminders'); } catch (err) { flash(ctx.backend.friendlyError(err)); return; }
   const p = PRESETS.find((x) => x.key === presetKey);
-  const r = existing || { id: newId, what: p ? p.what : '', every: p ? p.every : 1, unit: p ? p.unit : 'week', start: todayYMD(), time: '17:00' };
+  const r = existing || { id: newId, what: p ? p.what : '', every: p ? p.every : 1, unit: p ? p.unit : 'week', start: todayYMD(), time: '17:00', ...(seed || {}) };
   const hint = profileHint(r.what, ctx.S.profile);
   openEditor(`${editorHead(existing ? 'Reminder' : 'New reminder')}
     <form class="form" id="ed-form">
@@ -320,9 +337,19 @@ function bind(root, ctx) {
   };
 
   pane.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-edit-idea],[data-give],[data-edit-given],[data-new-given],[data-edit-rem],[data-preset],[data-ics]');
+    const t = e.target.closest('[data-edit-idea],[data-give],[data-edit-given],[data-new-given],[data-edit-rem],[data-preset],[data-ics],[data-sugg-add],[data-sugg-rem]');
     if (!t) return;
     const ds = t.dataset;
+    if (ds.suggAdd || ds.suggRem) {
+      const s = sugg[Number(ds.suggAdd || ds.suggRem)];
+      if (!s) return;
+      if (ds.suggRem) { openReminderEditor(ctx, null, null, reminderSeed(s)); return; }
+      if (!canWrite(ctx)) return;
+      try {
+        ctx.backend.saveListItem('gifts', { id: ctx.backend.newListId('gifts'), title: s.title, added: new Date().toISOString() });
+      } catch (err) { flash(ctx.backend.friendlyError(err)); }
+      return;
+    }
     const find = (id) => (ctx.S.gifts || []).find((x) => x.id === id);
     if (ds.editIdea) openIdeaEditor(ctx, ds.editIdea);
     else if (ds.give) { const g = find(ds.give); if (g) openGivenEditor(ctx, g); }

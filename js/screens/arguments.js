@@ -4,7 +4,7 @@
 // Never shown on Home (sensitive).
 import { esc, svg, topbar, banner, loadingOr, help, openEditor, closeEditor, editorHead, armDelete, flash } from '../ui.js';
 import { todayLocal, toYMD, shortDate, parseYMD } from '../logic/dates.js';
-import { OUTCOMES, outcomeName, sortLog, topicList, daysSinceLast, patterns, cleanEntry } from '../logic/arguments.js';
+import { OUTCOMES, outcomeName, sortLog, topicList, daysSinceLast, patterns, hasPatterns, PATTERN_MIN, cleanEntry } from '../logic/arguments.js';
 
 // Source for the tips: The Gottman Institute, "The Four Horsemen"
 // https://www.gottman.com/blog/the-four-horsemen-recognizing-criticism-contempt-defensiveness-and-stonewalling/
@@ -41,7 +41,7 @@ function render({ S, subtabs }) {
   const today = todayLocal();
   const since = daysSinceLast(list, today);
   const log = sortLog(list);
-  const pats = patterns(list, today);
+  const pats = hasPatterns(list) ? patterns(list, today) : [];
   const stats = `<div class="arg-stats">
       <div class="arg-card"><span class="arg-label">Days since last</span><span class="arg-big">${since === null ? '–' : since}</span></div>
       <div class="arg-card"><span class="arg-label">Before you talk${help(TIPS)}</span><span class="arg-tip">Calm time · listen first</span></div>
@@ -51,7 +51,7 @@ function render({ S, subtabs }) {
     : `<div class="empty-block"><p class="empty">Nothing logged.</p><button class="btn btn-primary" data-new-arg>${svg('plus')}Log one</button></div>`;
   const patPanel = pats.length
     ? `<div class="pat-cols"><span>Topic</span><span class="pat-num">90d</span><span class="pat-num all">All</span></div>${pats.map(patternBlock).join('')}`
-    : '<p class="empty">Shows up once you log some.</p>';
+    : `<p class="empty">Shows up after ${PATTERN_MIN} logs.</p>`;
   const body = `<div class="arg-wrap" data-view="${view}">
       <div class="seg arg-seg" role="radiogroup" aria-label="View">
         <button type="button" role="radio" data-view-btn="log" aria-checked="${view === 'log'}">Log</button>
