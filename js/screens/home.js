@@ -1,8 +1,10 @@
-// Home: next date (big), what's coming up, last date, last gift, an idea.
+// Home: next date (big), what's coming up (+ anniversary milestones), last date, last gift,
+// and one smart suggestion that links to the right screen (js/logic/suggest.js).
 import { esc, svg, topbar, banner } from '../ui.js';
 import { todayLocal, upcoming, shortDate, parseYMD } from '../logic/dates.js';
 import { holidayPrefs, upcomingHolidays } from '../logic/holidays.js';
-import { latestEntry, ideaFor } from '../logic/home.js';
+import { latestEntry, milestones } from '../logic/home.js';
+import { suggest } from '../logic/suggest.js';
 import { dateRow, typeName, addDateBtn, bindDateTaps } from './dates.js';
 
 let ideaOffset = 0;
@@ -14,11 +16,22 @@ function entryLine(e) {
   return `<span class="card-value">${esc(name)}</span><span class="card-sub">${esc(shortDate(parseYMD(e.day), true))}</span>`;
 }
 
+// The one suggestion: taps open its screen, or show the next nudge.
+function suggestCard(S, today) {
+  const s = suggest({ today, dates: S.dates, giftReminders: S.giftReminders, dateLog: S.dateLog, cycles: S.cycles, profile: S.profile }, ideaOffset);
+  const inner = `<span class="card-label">${esc(s.label)}</span><span class="card-idea">${esc(s.text)}</span>`;
+  const main = s.go
+    ? `<a class="sugg-main" href="#/${esc(s.go)}">${inner}</a>`
+    : `<button class="sugg-main" data-next-idea aria-label="${esc(s.label)}: next">${inner}</button>`;
+  const link = s.link ? `<a class="sugg-link" href="#/${esc(s.link[0])}">${esc(s.link[1])}</a>` : '';
+  return `<div class="card card-wide sugg${link ? ' has-link' : ''}">${main}${link}</div>`;
+}
+
 function render({ S }) {
   const today = todayLocal();
   const holidays = upcomingHolidays(today, holidayPrefs(S.settings.holidays))
     .map((h) => ({ ...h, next: parseYMD(h.date) }));
-  const list = [...upcoming(S.dates, today), ...holidays]
+  const list = [...upcoming(S.dates, today), ...milestones(S.dates, today), ...holidays]
     .sort((a, b) => a.days - b.days || String(a.title).localeCompare(String(b.title)));
   const head = `${topbar('Home', addDateBtn)}${banner(S.info)}`;
   if (!list.length) {
@@ -45,8 +58,7 @@ function render({ S }) {
       <div class="home-cards">
         <div class="card"><span class="card-label">Last date</span>${entryLine(latestEntry(S.dateLog, today))}</div>
         <div class="card"><span class="card-label">Last gift</span>${entryLine(latestEntry(S.gifts, today))}</div>
-        <button class="card card-wide" data-next-idea><span class="card-label">Suggested idea</span>
-          <span class="card-idea">${esc(ideaFor(today, ideaOffset))}</span></button>
+        ${suggestCard(S, today)}
       </div>
     </section></div>`;
 }

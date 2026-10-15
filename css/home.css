@@ -32,8 +32,18 @@
   border-radius: var(--r);
   background: var(--surface);
 }
-.card-wide { grid-column: 1 / -1; transition: transform 100ms; }
-.card-wide:active { transform: scale(.985); }
+.card-wide { grid-column: 1 / -1; }
+/* Suggestion: the whole card is the tap target; an optional side link (e.g. Gifts). */
+.sugg { position: relative; padding: 0; transition: transform 100ms; }
+.sugg:has(.sugg-main:active) { transform: scale(.985); }
+.sugg-main { display: flex; flex-direction: column; gap: 1px; width: 100%; padding: 8px 12px; text-decoration: none; font-size: inherit; }
+.sugg.has-link .sugg-main { padding-right: 72px; }
+.sugg-link {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; padding: 0 14px;
+  font-size: var(--fs-md); font-weight: 600; color: var(--accent); text-decoration: none;
+}
+.sugg-link:active { opacity: .6; }
 .card-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
 .card-value { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-sub { font-size: var(--fs-sm); color: var(--ink-faint); }
@@ -75,6 +85,10 @@
   .hero-num.is-today { font-size: 48px; }
   .hero-num small { font-size: var(--fs-lg); }
   .card { padding: 14px 18px; gap: 3px; }
+  .sugg { padding: 0; }
+  .sugg-main { padding: 14px 18px; gap: 3px; }
+  .sugg.has-link .sugg-main { padding-right: 84px; }
+  .sugg-link { padding: 0 18px; font-size: var(--fs-lg); }
   .card-value { font-size: 17px; }
   .card-idea { font-size: var(--fs-lg); }
   .home-list .row { min-height: 60px; }

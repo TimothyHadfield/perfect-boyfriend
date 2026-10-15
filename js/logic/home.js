@@ -1,24 +1,12 @@
-// Home helpers: latest logged entry, and the rotating "Suggested ideas".
-// Pure: tested in Node.
+// Home helpers: latest logged entry, and anniversary milestones for Coming up.
+// Pure: tested in Node. (The rotating suggestion lives in suggest.js + nudges.js.)
 import { parseYMD, toYMD } from './dates.js';
 
-// Placeholder list (cheap, thoughtful gestures) until the date planner slice.
-export const IDEAS = [
-  'Leave a note where she\'ll find it in the morning.',
-  'Bring her favorite drink, no reason.',
-  'Plan a sunset walk and bring a snack.',
-  'Make dinner tonight and do the dishes.',
-  'Send a photo of a favorite memory together.',
-  'Ask about her day and just listen.',
-  'Recreate your first date, cheaply.',
-  'Pick up her favorite flower.',
-  'Make a playlist of songs that remind you of her.',
-  'Take care of a chore she\'s been dreading.',
-  'Plan a picnic in the park.',
-  'Write down three things you love about her.',
-  'Have a movie night with her pick and her snacks.',
-  'Go stargazing with a blanket and cocoa.',
-];
+const dayNum = ({ y, m, d }) => Math.round(Date.UTC(y, m - 1, d) / 86400000);
+function fromDayNum(n) {
+  const t = new Date(n * 86400000);
+  return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() };
+}
 
 function entryDay(e) {
   if (!e) return null;
@@ -40,9 +28,33 @@ export function latestEntry(list, today) {
   return best ? { ...best, day: bestDay } : null;
 }
 
-// Changes once a day; `offset` lets a tap show the next one.
-export function ideaFor(today, offset = 0) {
-  const dayNum = Math.round(Date.UTC(today.y, today.m - 1, today.d) / 86400000);
-  const n = IDEAS.length;
-  return IDEAS[(((dayNum + offset) % n) + n) % n];
+// Whole days from the latest logged entry to today, or null when nothing is logged.
+export function daysSinceLatest(list, today) {
+  const e = latestEntry(list, today);
+  return e ? dayNum(today) - dayNum(parseYMD(e.day)) : null;
+}
+
+export const MILESTONE_DAYS = [100, 200, 365, 500, 1000];
+
+// Day-count milestones (N days after each anniversary date) still to come, in the same
+// shape as upcoming() rows so Coming up can show them. The yearly anniversary row already
+// covers "1 year", so 365 is left out when that anniversary repeats yearly.
+export function milestones(dates, today) {
+  const t = dayNum(today);
+  const out = [];
+  for (const a of dates || []) {
+    if (!a || a.type !== 'anniversary') continue;
+    const p = parseYMD(a.date);
+    if (!p) continue;
+    for (const n of MILESTONE_DAYS) {
+      if (n === 365 && a.yearly) continue;
+      const day = dayNum(p) + n;
+      if (day < t) continue;
+      out.push({
+        id: a.id, milestone: n, title: `${n} days together`, type: 'anniversary', yearly: false,
+        date: toYMD(fromDayNum(day)), next: fromDayNum(day), days: day - t,
+      });
+    }
+  }
+  return out.sort((x, y) => x.days - y.days);
 }
