@@ -21,8 +21,9 @@ import cycle from './screens/cycle.js';
 import argumentsScreen from './screens/arguments.js';
 import account from './screens/account.js';
 import settings from './screens/settings.js';
+import card from './screens/card.js';
 
-const SCREENS = [home, dates, plan, gifts, profile, cycle, argumentsScreen, account, settings];
+const SCREENS = [home, dates, plan, gifts, profile, cycle, argumentsScreen, account, settings, card];
 const REG = Object.fromEntries(SCREENS.map((s) => [s.key, s]));
 const HER = SCREENS.filter((s) => s.group === 'her');
 

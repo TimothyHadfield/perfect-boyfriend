@@ -13,8 +13,8 @@ const appJs = read('js/app.js');
 const indexHtml = read('index.html');
 const swJs = read('sw.js');
 
-test('the nine screens exist', () => {
-  eq(keys, ['account', 'arguments', 'cycle', 'dates', 'gifts', 'home', 'plan', 'profile', 'settings']);
+test('the ten screens exist', () => {
+  eq(keys, ['account', 'arguments', 'card', 'cycle', 'dates', 'gifts', 'home', 'plan', 'profile', 'settings']);
 });
 
 for (const k of keys) {
