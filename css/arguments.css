@@ -7,9 +7,13 @@
 .arg-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: 24px; }
 .arg-colhead { display: none; }
 
-/* Phone: one panel at a time. */
-.arg-wrap[data-view="log"] .arg-col-pat,
-.arg-wrap[data-view="patterns"] .arg-col-log { display: none; }
+/* Phone: one panel at a time. The side wrapper holds Patterns and Before you talk. */
+.arg-side { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.arg-seg2 { display: none; }
+.arg-wrap[data-view="log"] .arg-side,
+.arg-wrap:not([data-view="log"]) .arg-col-log,
+.arg-wrap[data-view="patterns"] .arg-col-talk,
+.arg-wrap[data-view="talk"] .arg-col-pat { display: none; }
 .arg-seg { flex: none; }
 
 .arg-stats { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -17,6 +21,21 @@
 .arg-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
 .arg-big { font-size: 26px; font-weight: 800; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
 .arg-tip { font-size: var(--fs-md); color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arg-card-btn { text-align: left; align-items: stretch; transition: background var(--t); }
+.arg-card-btn:active { background: var(--raised); }
+
+/* Before you talk */
+.talk { display: flex; flex-direction: column; }
+.talk-head { margin: 10px 0 4px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
+.talk-head:first-child { margin-top: 2px; }
+.talk-checks { display: flex; flex-direction: column; }
+.talk-check { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 4px 0; border-bottom: 1px solid var(--rule-soft); text-align: left; font-size: var(--fs-md); color: var(--ink-soft); }
+.talk-check i { flex: none; width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--rule); transition: background var(--t), border-color var(--t); }
+.talk-check[aria-pressed="true"] { color: var(--ink-faint); }
+.talk-check[aria-pressed="true"] i { background: var(--accent); border-color: var(--accent); }
+.talk-worked .pat-line { padding: 3px 0; }
+.talk-lines { display: flex; flex-wrap: wrap; gap: 6px; }
+.talk-line { padding: 6px 10px; border-radius: var(--r); background: var(--surface); font-size: var(--fs-md); color: var(--ink-soft); }
 
 /* Log rows */
 .arg-row { min-height: 50px; }
@@ -49,11 +68,16 @@
 .arg-pair .field { min-width: 0; }
 .arg-form .field textarea { min-height: 60px; }
 
-/* Laptop: Log (with stats) and Patterns side by side, each scrolls itself. */
+/* Laptop: Log (with stats) beside the right column, each scrolls itself.
+   The right column switches Patterns / Before you talk; wide screens show all three. */
 @media (min-width: 860px) {
   .arg-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; max-width: 1320px; width: 100%; }
   .arg-seg { display: none; }
-  .arg-wrap[data-view] .arg-col-pat, .arg-wrap[data-view] .arg-col-log { display: flex; }
+  .arg-seg2 { display: flex; flex: none; }
+  .arg-wrap[data-view] .arg-side, .arg-wrap[data-view] .arg-col-log { display: flex; }
+  .arg-wrap[data-side="patterns"] .arg-col-pat, .arg-wrap[data-side="talk"] .arg-col-talk { display: flex; }
+  .arg-wrap[data-side="patterns"] .arg-col-talk, .arg-wrap[data-side="talk"] .arg-col-pat { display: none; }
+  .arg-side .arg-colhead { display: none; }
   .arg-colhead { display: block; flex: none; border-bottom: 1px solid var(--rule); }
   .arg-card { padding: 14px 18px; }
   .arg-big { font-size: 34px; }
@@ -61,4 +85,13 @@
   .arg-row .row-title, .pat-head .row-title { font-size: 17px; }
   .pat { padding: 12px 0; }
   .pat-k { width: 66px; }
+  .talk-check { min-height: 40px; }
+}
+
+@media (min-width: 1180px) {
+  .arg-wrap { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+  .arg-wrap[data-view] .arg-side { display: contents; }
+  .arg-seg2 { display: none; }
+  .arg-wrap[data-side] .arg-col-pat, .arg-wrap[data-side] .arg-col-talk { display: flex; }
+  .arg-side .arg-colhead { display: block; }
 }

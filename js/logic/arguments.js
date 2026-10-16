@@ -55,9 +55,9 @@ export function daysSinceLast(list, today) {
   return best;
 }
 
-// The phrase used most often across these texts; ties go to the most recent.
-// `texts` must be newest first. Returns { phrase, n } or null.
-export function topPhrase(texts) {
+// Phrases ranked by how many texts use them; ties go to the most recent.
+// `texts` must be newest first. Returns [{ phrase, n }].
+function rankPhrases(texts) {
   const m = new Map();
   texts.forEach((t, i) => {
     for (const p of new Set(splitPhrases(t))) {
@@ -65,9 +65,42 @@ export function topPhrase(texts) {
       m.get(p).n++;
     }
   });
-  const all = [...m.values()].sort((a, b) => b.n - a.n || a.first - b.first);
-  return all.length ? { phrase: all[0].phrase, n: all[0].n } : null;
+  return [...m.values()].sort((a, b) => b.n - a.n || a.first - b.first).map(({ phrase, n }) => ({ phrase, n }));
 }
+
+// The phrase used most often across these texts, or null.
+export function topPhrase(texts) {
+  return rankPhrases(texts)[0] || null;
+}
+
+// "Before you talk": what helped most across every log (all topics).
+export function workedBefore(list, n = 3) {
+  return rankPhrases(sortLog(list).map((e) => e.helped)).slice(0, n);
+}
+
+// "Before you talk" content. Based on Gottman research (soft startup, repair attempts,
+// taking a break when flooded) and plain active listening. Kept short on purpose.
+export const CHECKLIST = [
+  'Cool down first (20 min if heated)',
+  'Listen to understand, not to answer',
+  'Start with "I feel… when…"',
+  'Just this issue, no scorekeeping',
+  'Own your part',
+  'Ask what she needs',
+];
+
+export const REPAIR_LINES = [
+  'I hear you.',
+  'Can we start over?',
+  'What do you need from me right now?',
+  'You\'re right about that part.',
+  'Sorry, that came out wrong.',
+  'Help me understand.',
+  'Let me try that again, more gently.',
+  'Can we take a break and come back?',
+  'I\'m on your side.',
+  'We\'re okay. I want to fix this.',
+];
 
 export const RECENT_DAYS = 90;
 

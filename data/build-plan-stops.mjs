@@ -50,6 +50,40 @@ const EXTRA = [
   { id: 'ticket-to-ride-home', name: 'Ticket to Ride Europe (at home)', short: 'Ticket to Ride', kind: 'at-home', city: 'Home', lat: null, lng: null, home: true, cost: 0, mins: 90, indoor: true, tags: ['talky', 'board-games'], hours: null, bring: ['Ticket to Ride Europe', 'Snacks'] },
 ];
 
+/* ---------- seasonal Utah County dates (only in their months) ---------- */
+// Researched 2026-10-15 from free web sources; table + caveats in docs/seasonal-notes.md.
+// Coordinates: Nominatim (OpenStreetMap) named place, else US Census address geocoder, else the SSC app's
+// business location. months = calendar months it runs (finer date ranges are in `note`).
+// priceNote 'estimate' = couldn't confirm a current price. days 0=Sun. Times are minutes after midnight.
+const CHECKED = '2026-10-15';
+const MON_SAT = [1, 2, 3, 4, 5, 6];
+const SEASONAL = [
+  // fall
+  { id: 'cornbellys-lehi', name: "Cornbelly's Corn Maze (Lehi)", short: "Cornbelly's", kind: 'activity', city: 'Lehi', lat: 40.42474, lng: -111.89137, cost: 40, mins: 120, indoor: false, tags: ['seasonal', 'corn-maze', 'playful', 'photos'], months: [9, 10], days: MON_SAT, open: T(16), close: T(22), priceNote: '$19.99 Mon-Thu, $27.99 Fri-Sat per person (official, 2026)', note: 'At Thanksgiving Point. 2025 season Sep 20-Nov 2, closed Sundays; 2026 hours not posted (4-10pm assumed)', source: 'https://cornbellys.com/products/lehi' },
+  { id: 'cornbellys-spanish-fork', name: "Cornbelly's Corn Maze (Spanish Fork)", short: "Cornbelly's SF", kind: 'activity', city: 'Spanish Fork', lat: 40.12909, lng: -111.74212, cost: 26, mins: 120, indoor: false, tags: ['seasonal', 'corn-maze', 'playful', 'photos'], months: [9, 10], days: MON_SAT, open: T(16), close: T(22), priceNote: '$12.99 Mon-Thu, $15.99 Fri-Sat per person (official, 2026)', note: '3687 W 5600 S. Smaller and cheaper than Lehi; u-pick pumpkins. Hours assumed like Lehi', source: 'https://cornbellys.com/products/spanish-fork' },
+  { id: 'rowleys-red-barn-fall-festival', name: "Rowley's Red Barn Fall Festival", short: "Rowley's Red Barn", kind: 'activity', city: 'Santaquin', lat: 39.96886, lng: -111.78993, cost: 24, mins: 120, indoor: false, tags: ['seasonal', 'corn-maze', 'playful', 'cozy', 'orchard'], months: [9, 10], hours: 'Mon-Fri 3:30-9pm, Sat 10am-9pm, Sun closed', priceNote: '$12 Mon-Thu, $15 Fri-Sat per person (official, 2026)', note: '2026: Sep 19-Oct 30. Orchard farm stand (apple cider slush). About 30 min south of Orem', source: 'https://www.rowleysredbarn.com/pages/fall-festival' },
+  { id: 'haunted-forest-af', name: 'The Haunted Forest', short: 'Haunted Forest', kind: 'activity', city: 'American Fork', lat: 40.35448, lng: -111.80157, cost: 60, mins: 90, indoor: false, tags: ['seasonal', 'spooky', 'scary', 'night'], months: [9, 10], days: MON_SAT, open: T(19, 30), close: T(22), priceNote: 'estimate', note: '2026: Fri-Sat in Sep, Mon-Sat in Oct, plus Nov 6-7; 7:30-10pm (to midnight Fri-Sat). Tickets online only', source: 'https://hauntedforestutah.com/' },
+  // winter
+  { id: 'luminaria-thanksgiving-point', name: 'Luminaria at Thanksgiving Point', short: 'Luminaria', kind: 'activity', city: 'Lehi', lat: 40.43409, lng: -111.91081, cost: 50, mins: 75, indoor: false, tags: ['seasonal', 'romantic', 'christmas-lights', 'walk'], months: [11, 12, 1], hours: 'Mon-Sat 4-9pm, Sun closed', priceNote: 'estimate (2025: $24-27 adult)', note: '2026: Nov 12-Jan 9; closed Sundays, Christmas Eve and Day. Timed tickets', source: 'https://thanksgivingpoint.org/events/luminaria' },
+  { id: 'spanish-fork-festival-of-lights', name: 'Spanish Fork Festival of Lights (drive-through)', short: 'Festival of Lights', kind: 'activity', city: 'Spanish Fork', lat: 40.08228, lng: -111.60346, cost: 10, mins: 45, indoor: true, tags: ['seasonal', 'christmas-lights', 'drive', 'talky'], months: [11, 12], hours: '6-10pm', priceNote: '$10 per car online (2024); more at the booth', note: 'Canyon View Park. Thanksgiving Day to Jan 1. You stay in the car (indoor = weatherproof)', source: 'https://www.spanishfork.gov/news_detail_T17_R54.php' },
+  { id: 'pond-town-christmas-salem', name: 'Pond Town Christmas lights (Salem Pond)', short: 'Salem Pond lights', kind: 'free-outdoor', city: 'Salem', lat: 40.05031, lng: -111.67434, cost: 0, mins: 45, indoor: false, tags: ['seasonal', 'free', 'christmas-lights', 'walk', 'romantic'], months: [12], open: T(17, 30), close: T(23), note: 'About Nov 29-Jan 1, 5:30-11pm (2024 guide); walk or drive the loop', source: 'https://whatsupprovo.beehiiv.com/p/christmas-lights-guide' },
+  { id: 'rock-canyon-park-sledding', name: 'Rock Canyon Park sledding hill', short: 'Rock Canyon sledding', kind: 'free-outdoor', city: 'Provo', lat: 40.26733, lng: -111.63502, cost: 0, mins: 60, indoor: false, tags: ['seasonal', 'free', 'active', 'playful', 'sledding', 'snow'], months: [12, 1, 2], note: 'Only after a good snowfall; bring your own sled. Crowded on snow days', source: 'https://universe.byu.edu/2012/02/09/sledding-revitalizes-winter' },
+  { id: 'sundance-nordic-snowshoe', name: 'Sundance Nordic Center (snowshoeing)', short: 'Sundance snowshoe', kind: 'activity', city: 'Sundance', lat: 40.39561, lng: -111.59089, cost: 60, mins: 90, indoor: false, tags: ['seasonal', 'active', 'scenic', 'snow', 'romantic'], months: [12, 1, 2, 3], open: T(9), close: T(16, 30), priceNote: 'estimate (2026-27 prices TBA)', note: 'Trail pass + snowshoe rental. Full-moon snowshoe nights and Night Owling on set dates. Hours estimated', source: 'https://www.sundanceresort.com/winter-activities/nordic-center/' },
+  // spring
+  { id: 'tulip-festival-thanksgiving-point', name: 'Tulip Festival at Thanksgiving Point', short: 'Tulip Festival', kind: 'activity', city: 'Lehi', lat: 40.43409, lng: -111.91081, cost: 52, mins: 120, indoor: false, tags: ['seasonal', 'romantic', 'flowers', 'walk', 'photos'], months: [4, 5], hours: 'Mon-Sat 9am-8pm, Sun closed', priceNote: 'estimate ($24 weekday to $29 peak adult, 2024-26 reports)', note: '2026: Apr 6-May 16 at Ashton Gardens. Timed tickets', source: 'https://thanksgivingpoint.org/events/tulip-festival/' },
+  { id: 'cherry-blossoms-nielsens-grove', name: "Cherry blossom walk (Nielsen's Grove Park)", short: 'Cherry blossoms', kind: 'free-outdoor', city: 'Orem', lat: 40.26234, lng: -111.70341, cost: 0, mins: 45, indoor: false, tags: ['seasonal', 'free', 'romantic', 'flowers', 'walk', 'photos'], months: [4], note: 'Blooms last about 2 weeks, usually early to mid April; check before going', source: 'https://www.heraldextra.com/news/community/2025/mar/22/tales-from-utah-valley-its-time-for-springing/' },
+  { id: 'festival-of-colors-spanish-fork', name: 'Festival of Colors (Krishna Temple)', short: 'Festival of Colors', kind: 'activity', city: 'Spanish Fork', lat: 40.07571, lng: -111.66209, cost: 20, mins: 120, indoor: false, tags: ['seasonal', 'playful', 'festival', 'loud'], months: [3, 4], auto: false, priceNote: 'estimate (color bags + parking)', note: 'One spring weekend only (2026: Mar 28-29), so add it by hand', source: 'https://www.heraldextra.com/news/2026/mar/29/color-rush-thousands-celebrate-2026-festival-of-colors-at-krishna-temple/' },
+  // summer
+  { id: 'provo-rooftop-concert', name: 'Rooftop Concert Series (downtown Provo)', short: 'Rooftop Concert', kind: 'culture', city: 'Provo', lat: 40.23384, lng: -111.6606, cost: 0, mins: 180, indoor: false, tags: ['seasonal', 'free', 'show', 'music', 'loud'], months: [5, 6, 7, 8, 9], slots: { 5: T(19) }, close: T(22), auto: false, note: 'One Friday a month, May-Sep (2026: May 15, Jun 26), 7pm, Nu Skin Plaza. Add it by hand on show nights', source: 'https://www.heraldextra.com/news/2026/apr/29/rooftop-concert-series-sets-date-announces-bands-for-downtown-provo-return/' },
+  { id: 'provo-farmers-market', name: 'Provo Farmers Market (Pioneer Park)', short: 'Farmers Market', kind: 'free-outdoor', city: 'Provo', lat: 40.23304, lng: -111.66844, cost: 10, mins: 60, indoor: false, tags: ['seasonal', 'casual', 'walk', 'talky'], months: [6, 7, 8, 9, 10], days: [6], open: T(9), close: T(14), priceNote: 'estimate (snacks; entry free)', note: '2026: Saturdays Jun 6-Oct 31, 9am-2pm (10am in Oct)', source: 'https://marketspread.com/market/35940/provo-farmers-market/' },
+  { id: 'thanksgiving-point-outdoor-movie', name: 'Outdoor Movie at Thanksgiving Point', short: 'Outdoor movie', kind: 'culture', city: 'Lehi', lat: 40.43409, lng: -111.91081, cost: 15, mins: 120, indoor: false, tags: ['seasonal', 'movie', 'romantic', 'picnic'], months: [6, 7, 8], slots: { 5: T(21) }, close: T(23, 30), priceNote: '$7.50 per adult (series page; 2026 not confirmed)', note: 'Fridays late Jun to mid Aug at Ashton Gardens; doors 8pm, film at dusk', source: 'https://www.thanksgivingpoint.org/events/outdoor-movie-series' },
+  { id: 'high-country-tubing', name: 'High Country Adventure (Provo River tubing)', short: 'River tubing', kind: 'activity', city: 'Provo Canyon', lat: 40.35621, lng: -111.57281, cost: 83, mins: 150, indoor: false, tags: ['seasonal', 'active', 'river', 'summer'], months: [6, 7, 8], open: T(10), close: T(18), priceNote: 'estimate ($41.46 per person, undated listing)', note: '3702 E Provo Canyon Rd. Shuttles hourly 10am-4pm; float 1.5-2 hours. Book ahead', source: 'https://highcountryadventure.com/tubing/provo-river-tubing/' },
+  { id: 'timpanogos-cave', name: 'Timpanogos Cave tour', short: 'Timpanogos Cave', kind: 'activity', city: 'American Fork Canyon', lat: 40.43902, lng: -111.7094, cost: 24, mins: 180, indoor: false, tags: ['seasonal', 'active', 'hike', 'cave', 'novel'], months: [6, 7, 8, 9], open: T(8), close: T(17), priceNote: '$12 per adult tour (NPS)', note: '2026 season opened May 18. Steep 1.5 mi trail up. Tickets on recreation.gov, released 30 days ahead; they sell out. Hours estimated', source: 'https://home.nps.gov/tica/planyourvisit/fees.htm' },
+  { id: 'sundance-scenic-lift', name: 'Sundance scenic lift ride', short: 'Sundance lift', kind: 'activity', city: 'Sundance', lat: 40.3909, lng: -111.57766, cost: 60, mins: 90, indoor: false, tags: ['seasonal', 'scenic', 'romantic', 'view'], months: [6, 7, 8, 9], open: T(10), close: T(18), priceNote: '$30 per adult (official)', note: 'Daily late May to early Oct; food at Bearclaw Cabin up top. Hours estimated', source: 'https://www.sundanceresort.com/activities/scenic-lift-rides/' },
+  { id: 'cascade-springs', name: 'Cascade Springs (Alpine Loop)', short: 'Cascade Springs', kind: 'free-outdoor', city: 'Alpine Loop', lat: 40.45815, lng: -111.55075, cost: 0, mins: 90, indoor: false, tags: ['seasonal', 'free', 'scenic', 'walk', 'talky', 'drive'], months: [6, 7, 8, 9, 10], note: 'Boardwalk springs off the Alpine Loop, open about late May to late Oct (snow closes the road)', source: 'https://www.utah.com/things-to-do/scenic-drives/alpine-loop-scenic-drive/' },
+  { id: 'af-boat-harbor-sunset', name: 'American Fork Boat Harbor (Utah Lake sunset)', short: 'Utah Lake sunset', kind: 'free-outdoor', city: 'American Fork', lat: 40.34152, lng: -111.80192, cost: 0, mins: 45, indoor: false, tags: ['seasonal', 'free', 'sunset', 'romantic', 'view'], months: [5, 6, 7, 8, 9], note: 'Water on both sides at sunset', source: 'https://utahhikingbeauty.com/utah-lake-sunsets/' },
+];
+
 // Tim's picks (docs/tim-date-notes.md), by stop id.
 const PICKS = new Set(['classic-fun-center-orem', 'redline-racing', 'stadium-cinemas-payson', 'color-me-mine-provo', 'escapes-in-time',
   'game-grid-lehi', 'get-out-games-provo', 'kreative-kiln-pg', 'laser-assault-provo', 'lowes-xtreme-provo', 'mandalyn-academy-af',
@@ -196,6 +230,12 @@ function bringWear(s) {
   if (/escapes-in-time|get-out-games/.test(id)) bring.add('Booking confirmation');
   if (/the-ruth|scera-center/.test(id)) bring.add('Tickets');
   if (/utah-grizzlies|uvu-athletics/.test(id)) wear = 'Team colors';
+  if (tags.includes('sledding')) { bring.add('Sled'); bring.add('Gloves'); wear = 'Snow clothes'; }
+  if (tags.includes('snow') && !tags.includes('sledding')) { bring.add('Gloves'); wear = 'Warm layers'; }
+  if (/haunted-forest|luminaria|tulip-festival|timpanogos-cave/.test(id)) bring.add('Tickets');
+  if (/outdoor-movie/.test(id)) bring.add('Blanket');
+  if (/high-country-tubing/.test(id)) { bring.add('Swimsuit'); bring.add('Water shoes'); bring.add('Sunscreen'); }
+  if (/festival-of-colors/.test(id)) wear = 'Old white clothes';
   return { bring: [...bring], wear };
 }
 
@@ -222,7 +262,8 @@ const out = [];
 for (const sp of spots) {
   if (DROP.has(sp.id) || sp.costPerCouple == null) continue;   // no price found (Karaoke38, SCERA Shell, Improv Broadway, ComedyBox)
   const kind = kindOf(sp);
-  const tags = sp.tags || [];
+  const seasonal = sp.category === 'seasonal';
+  const tags = seasonal && !(sp.tags || []).includes('seasonal') ? [...(sp.tags || []), 'seasonal'] : (sp.tags || []);
   const h = parseHours(sp.hours);
   const outdoorEvening = kind === 'free-outdoor' && tags.some((t) => ['evening', 'night', 'christmas-lights'].includes(t));
   out.push({
@@ -231,6 +272,7 @@ for (const sp of spots) {
     days: h.days, open: kind === 'free-outdoor' ? null : h.open, close: outdoorEvening ? T(22) : (kind === 'free-outdoor' ? null : h.close),
     months: SEASON[sp.season] ?? null, slots: null, auto: true, pick: false, home: false,
     priceNote: sp.priceNote || null, note: null,
+    source: seasonal ? sp.sourceUrl : null, checked: seasonal ? CHECKED : null,   // orem-spots research date
   });
 }
 for (const x of EXTRA) {
@@ -241,6 +283,16 @@ for (const x of EXTRA) {
     days: h.days, open: h.open, close: x.close ?? h.close, months: x.months || null, slots: null,
     auto: x.auto !== false, pick: false, home: !!x.home, bring: x.bring, dealExtra: x.dealExtra,
     anyStore: x.anyStore || undefined, priceNote: x.home ? null : 'estimate', note: x.note || null,
+  });
+}
+for (const x of SEASONAL) {
+  const h = parseHours(x.hours);
+  out.push({
+    id: x.id, name: x.name, short: x.short, kind: x.kind, city: x.city, lat: x.lat, lng: x.lng,
+    cost: x.cost, mins: x.mins, indoor: x.indoor, tags: x.tags,
+    days: x.days ?? h.days, open: x.open ?? h.open, close: x.close ?? h.close, months: x.months, slots: x.slots || null,
+    auto: x.auto !== false, pick: false, home: false,
+    priceNote: x.priceNote || null, note: x.note || null, source: x.source, checked: CHECKED,
   });
 }
 for (const s of out) {

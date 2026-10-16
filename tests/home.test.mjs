@@ -39,3 +39,20 @@ test('milestones: one-time anniversary keeps 365; passed ones and other types dr
   eq(milestones([{ id: 'x', type: 'anniversary', date: 'bad' }], T('2026-10-15')), []);
   eq(milestones(undefined, T('2026-10-15')), []);
 });
+
+import { planRows } from '../js/logic/home.js';
+
+test('saved plans: today or later become Coming up rows labelled as a date, sorted', () => {
+  const plans = [
+    { id: 's1', title: 'Pleasant Grove', date: '2026-10-17', at: '10:00', stops: [{ id: 'x', name: 'Daylight Donuts', at: '10:00' }], total: 41, driveMins: 34 },
+    { id: 's2', title: 'Provo dance', date: '2026-10-15', at: '19:00', stops: [], total: 20, driveMins: 12 },
+    { id: 's3', title: 'Old one', date: '2026-10-10', at: '18:00', stops: [], total: 10, driveMins: 5 },
+    { id: 's4', title: '  ', date: '2026-10-15', at: '09:00', stops: [], total: 0, driveMins: 0 },
+    { id: 's5', title: 'Bad', date: 'soon' },
+  ];
+  const r = planRows(plans, T('2026-10-15'));
+  eq(r.map((x) => [x.id, x.title, x.days]), [['s4', 'Date', 0], ['s2', 'Provo dance', 0], ['s1', 'Pleasant Grove', 2]]);
+  eq(r[2].next, { y: 2026, m: 10, d: 17 });
+  eq(r[2].plan, true);
+  eq(planRows(undefined, T('2026-10-15')), []);
+});

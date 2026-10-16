@@ -95,3 +95,33 @@
   .home-list .row-title { font-size: 17px; }
   .home-list .count { font-size: var(--fs-lg); }
 }
+
+/* Saved plan rows in Coming up are links. */
+.hm-plan-row { text-decoration: none; }
+a.hero { text-decoration: none; color: inherit; }
+
+/* "She mentioned…" quick capture. Phone: a compact sheet that drops from the top
+   (the keyboard can't cover it); laptop: the usual editor panel. */
+.cap-form { gap: 10px; }
+.cap-extra { min-height: 70px; }
+.cap-x[hidden] { display: none; }
+.cap-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A7B0B5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.cap-form select:focus { outline: none; border-color: var(--accent); }
+@media (max-width: 859px) {
+  .editor-backdrop.cap-sheet { background: rgb(0 0 0 / .55); }
+  .cap-sheet .editor { height: auto; background: var(--ground); border-radius: 0 0 14px 14px; box-shadow: 0 16px 36px -8px rgb(0 0 0 / .6); }
+  .cap-sheet .editor .form { flex: none; padding-bottom: 16px; }
+}
+@media (min-width: 860px) {
+  .cap-form select { background-color: var(--ground); }
+}
