@@ -55,8 +55,11 @@ const st = {
 
 const getJson = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
 
+const RETRY_MS = 30000;   // after a failed load, wait this long before a later render tries again
+
 function load(ctx) {
   if (st.stops || st.loading || typeof document === 'undefined') return;   // not in a browser (tests)
+  if (st.loadErr && Date.now() - st.failedAt < RETRY_MS) return;          // the re-render after a failure must not refetch at once
   st.loading = true;
   // The forecast gets a short head start so the first plan can use it; if it's slow, it fills in later.
   const wx = getForecast().then((d) => { st.wx = d; return d; });
@@ -66,7 +69,7 @@ function load(ctx) {
     Promise.race([wx, new Promise((r) => setTimeout(r, 1500))]),
   ])
     .then(([j, times]) => { st.stops = j.stops; st.times = times; })
-    .catch((err) => { console.warn('plan stops', err); st.loadErr = true; })
+    .catch((err) => { console.warn('plan stops', err); st.loadErr = true; st.failedAt = Date.now(); })
     .finally(() => { st.loading = false; ctx.render(); wx.then(() => ctx.render()); });
 }
 

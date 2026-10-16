@@ -25,6 +25,15 @@ test('capture: checks text, the follow-up date and the section', () => {
   eq(checkCapture('about', 'Flower: tulips', 'favorites'), '');
 });
 
+// Saving "About her" rewrites the whole profile doc ([...S.profile, item]); before the profile
+// has loaded S.profile is [], so saving then would wipe every existing item.
+test('capture: About her waits until her profile has loaded', () => {
+  eq(checkCapture('about', 'Flower: tulips', 'favorites', false), 'Still loading. Try again in a second.');
+  eq(checkCapture('about', 'Flower: tulips', 'favorites', true), '');
+  eq(checkCapture('gift', 'Blue scarf', '', false), '', 'gift ideas are their own rows');
+  eq(checkCapture('follow', 'Ask how it went', '2026-10-16', false), '', 'follow-ups are their own rows');
+});
+
 test('capture: gift idea row has the shape Gifts uses, and shows up as an idea', () => {
   const now = new Date('2026-10-15T18:30:00Z');
   const row = giftIdeaRow('g9', '  Blue   scarf from Target ', now);

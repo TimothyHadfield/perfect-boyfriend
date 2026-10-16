@@ -20,12 +20,14 @@ export function tomorrowYMD(today) {
 const clean = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
 
 // Returns '' when fine, else a short message for the sheet.
-export function checkCapture(kind, text, extra) {
+// profileReady: About her saves the whole profile list, so it must wait until the profile has loaded.
+export function checkCapture(kind, text, extra, profileReady = true) {
   const t = clean(text);
   if (!t) return kind === 'gift' ? 'Add a gift.' : kind === 'follow' ? 'Add what to follow up on.' : 'Add what she said.';
   if (t.length > TEXT_MAX) return `Keep it under ${TEXT_MAX} characters.`;
   if (kind === 'follow' && !parseYMD(extra)) return 'Pick a date.';
   if (kind === 'about' && !SECTIONS.some((s) => s.key === extra)) return 'Pick a section.';
+  if (kind === 'about' && !profileReady) return 'Still loading. Try again in a second.';
   return '';
 }
 

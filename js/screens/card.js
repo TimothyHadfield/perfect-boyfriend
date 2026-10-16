@@ -15,13 +15,16 @@ const st = {
 
 const wide = () => typeof matchMedia === 'function' && matchMedia('(min-width: 860px)').matches;
 
+const RETRY_MS = 30000;   // after a failed load, wait this long before a later render tries again
+
 function load(ctx) {
   if (st.deals || st.loading || typeof document === 'undefined') return;
+  if (st.loadErr && Date.now() - st.failedAt < RETRY_MS) return;   // the re-render after a failure must not refetch at once
   st.loading = true;
   fetch('data/ssc-deals.json')
     .then((r) => { if (!r.ok) throw new Error('ssc-deals ' + r.status); return r.json(); })
     .then((j) => { st.deals = j.deals || []; })
-    .catch((err) => { console.warn('card deals', err); st.loadErr = true; })
+    .catch((err) => { console.warn('card deals', err); st.loadErr = true; st.failedAt = Date.now(); })
     .finally(() => { st.loading = false; ctx.render(); });
 }
 

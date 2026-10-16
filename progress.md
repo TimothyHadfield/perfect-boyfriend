@@ -19,6 +19,7 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 | Cycle (period tracker, predictions, fertile days, how to help) | live | list `cycles`; algorithm in `js/logic/cycle.js`, research `docs/cycle-research.md` |
 | Plan (Orem dates + SSC, price, bring, wear, drive times, Tim's 4 plans) | live | `data/plan-stops.json` (134, built by `data/build-plan-stops.mjs`); lists `dateLog`, `sscUses` |
 | Firebase `perfect-boyfriend-th` | live | Firestore us-central1, anonymous + email auth, github.io domain, anon auto-delete OFF |
+| Sweep 2026-10-16 (bugs, speed, handoff) | done | About her capture waits for the profile to load (could wipe it); Plan/Card no longer refetch in a loop when their data file fails; preconnect to Firebase hosts; suggestion button name matches its text; CLAUDE.md added. Open for Tim: guest "Sign in" abandons guest data (backend.js signIn), Plan hub ring overlaps actions row ~6px at 393px, 4-stop timeline cut off until scrolled |
 | SSC deals / Orem spots | data done | `data/ssc-deals.json` (421), `data/orem-spots.json` (110), `data/ssc-app-orem-2026-10-15.json` (620) |
 
 ## Authorized next steps

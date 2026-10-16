@@ -44,7 +44,7 @@ function suggestCard(S, today) {
   } else {
     main = s.go
       ? `<a class="sugg-main" href="#/${esc(s.go)}">${inner}</a>`
-      : `<button class="sugg-main" data-next-idea aria-label="${esc(s.label)}: next">${inner}</button>`;
+      : `<button class="sugg-main" data-next-idea>${inner}</button>`;
     if (s.link) link = `<a class="sugg-link" href="#/${esc(s.link[0])}">${esc(s.link[1])}</a>`;
   }
   return `<div class="card card-wide sugg${link ? ' has-link' : ''}">${main}${link}</div>`;
@@ -92,7 +92,7 @@ function openCapture(ctx) {
       e.preventDefault();
       const kind = capKind;
       const extra = kind === 'follow' ? root.querySelector('#cap-date').value : kind === 'about' ? root.querySelector('#cap-sec').value : '';
-      const bad = checkCapture(kind, text.value, extra);
+      const bad = checkCapture(kind, text.value, extra, S.profileLoaded);
       if (bad) { msg.textContent = bad; msg.classList.add('is-error'); return; }
       try {
         if (kind === 'gift') backend.saveListItem('gifts', giftIdeaRow(backend.newListId('gifts'), text.value));
