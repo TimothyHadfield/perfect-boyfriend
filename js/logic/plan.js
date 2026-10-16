@@ -236,7 +236,9 @@ export function stopPoint(stop, origin) {
   return stop.home ? { lat: origin.lat, lng: origin.lng } : { lat: stop.lat, lng: stop.lng };
 }
 
-function closeOf(stop, month) {
+// closeByDay: {weekday (0=Sun): minutes} for places whose closing time changes by day.
+function closeOf(stop, month, day) {
+  if (stop.closeByDay && stop.closeByDay[day] != null) return stop.closeByDay[day];
   if (stop.close != null) return stop.close;
   if (stop.kind === 'free-outdoor') return sunset(month) + 20;
   return 21 * 60;
@@ -269,7 +271,7 @@ export function timeline(stops, o) {
       begin = s.open;
     }
     const end = begin + (s.mins || 60);
-    if (end > closeOf(s, month) + (slot != null ? 240 : 0)) return null;
+    if (end > closeOf(s, month, o.day) +(slot != null ? 240 : 0)) return null;
     if (end > LATEST_END) return null;
     const deal = pickDeal(s, o.day, begin, month, o.sscUses);
     const price = Math.max(0, (s.cost || 0) - (deal ? deal.save : 0));

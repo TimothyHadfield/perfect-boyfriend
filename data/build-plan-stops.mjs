@@ -95,6 +95,8 @@ const PICKS = new Set(['classic-fun-center-orem', 'redline-racing', 'stadium-cin
 
 /* ---------- per-stop fixes ---------- */
 const OVERRIDE = {
+  // moa.byu.edu/plan-your-visit-hours (checked 2026-10-15): Mon/Thu/Fri 10-9, Tue/Wed/Sat 10-6, Sun closed.
+  'byu-museum-of-art': { days: [1, 2, 3, 4, 5, 6], open: T(10), close: T(21), closeByDay: { 2: T(18), 3: T(18), 6: T(18) } },
   'tippin-point-country-dance': { short: "Tippin' Point", slots: { 3: T(20, 30), 6: T(20, 30) }, mins: 180, close: T(24, 30) },
   'marnells-country-dance': { short: "Marnell's", slots: { 1: T(20), 4: T(21) }, mins: 150, close: T(24) },
   'salsa-chocolate': { short: 'Salsa Chocolate', slots: { 4: T(21) }, mins: 150, close: T(25) },

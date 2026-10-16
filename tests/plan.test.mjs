@@ -31,6 +31,13 @@ test('data: Tim\'s picks are all stops, with real coordinates and card deals tha
   ok(S('tippin-point-country-dance').deals.some((d) => d.id === 'entertainment-063'), 'Utah Country Dance Wed deal on Tippin Point');
 });
 
+test('closing time can change by weekday (BYU MOA: Fri until 9, Sat until 6)', () => {
+  const moa = S('byu-museum-of-art');
+  ok(timeline([moa], { day: 5, month: OCT, start: '18:00', origin: OREM }), 'Fri 6pm fits');
+  eq(timeline([moa], { day: 6, month: OCT, start: '18:00', origin: OREM }), null);
+  eq(timeline([moa], { day: 2, month: OCT, start: '17:30', origin: OREM }), null);
+});
+
 test('parseLimits reads the card\'s day and time limits', () => {
   eq(parseLimits('Mon Only Provo').days, [1]);
   eq(parseLimits('M-Th').days, [1, 2, 3, 4]);
