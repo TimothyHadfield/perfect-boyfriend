@@ -39,6 +39,13 @@
 .set-money input::placeholder { color: var(--ink-faint); }
 .set-money input:focus { outline: none; }
 
+/* Backup: Download and Restore side by side; the file picker hides inside Restore. */
+.set-backup { margin-top: 10px; }
+.set-restore { position: relative; overflow: hidden; cursor: pointer; }
+.set-restore input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+.set-restore.is-disabled, .set-backup .btn:disabled { opacity: .5; }
+.set-backup-msg { margin-top: 6px; }
+
 @media (min-width: 860px) {
   .screen-settings .pane > * { max-width: 640px; }
   .switch-cell > span { font-size: var(--fs-lg); }
