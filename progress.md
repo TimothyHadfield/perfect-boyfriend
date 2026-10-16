@@ -1,7 +1,7 @@
 # Perfect Boyfriend — progress (handoff for Claude)
 
 ## START HERE
-_Last updated 2026-10-15 (end of kickoff chat). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
+_Last updated 2026-10-15 (after wave 4, live @ d815955). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
 1. Read this file (it's short on purpose).
 2. Read `direction.md` (it overrules everything).
 3. Skim the last 3 entries of `chat.md`. Older history: `docs/archive/`.
@@ -69,7 +69,7 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 - Wave 3 on screen: Home's gift-reminder/date-gap/cycle card variants, Plan "Near me" and offline forecast, Dates Past with many rows (scroll inside list) — unit tests only. Stop opening hours (e.g. BYU MOA on a Fri evening) not audited.
 - Wave 4: iPhone share sheet, .ics import of plan events, Files save of backup, capture date picker + keyboard on a real iPhone. Corn mazes ($38–52) still never auto-picked; Rowley's (37 km) out of reach; seasonal prices for Haunted Forest, Luminaria, Tulip Festival, tubing, Sundance snowshoe are estimates; sub-month date ranges only in stop notes (`docs/seasonal-notes.md`).
 - Gift allergy check matches words only ("Reese's" isn't flagged against peanuts).
-- Daylight Donuts uses the card's Saratoga Springs location (Tim wrote PG); Mooyah, Redline, Yummy Ice Cream coords approximate; food prices are estimates.
+- Mooyah, Redline, Yummy Ice Cream coords approximate; food prices are estimates.
 - Plan logging confirmed only in guest mode on localhost (uses left dropped 3 → 2); not confirmed with the email test account on live.
 
 ## Rejected / parked
