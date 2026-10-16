@@ -1,7 +1,7 @@
 # Perfect Boyfriend — progress (handoff for Claude)
 
 ## START HERE
-_Last updated 2026-10-15 (after wave 4, live @ d815955). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
+_Last updated 2026-10-16 (after wave 4, live @ d815955; chat reset checkpoint). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
 1. Read this file (it's short on purpose).
 2. Read `direction.md` (it overrules everything).
 3. Skim the last 3 entries of `chat.md`. Older history: `docs/archive/`.
@@ -86,5 +86,5 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 ## Map
 - `index.html`, `js/app.js` (screen registry; contract at top), `js/ui.js` (shared UI), `js/backend.js` (Firebase + generic lists), `js/logic/*` (pure, tested), `js/screens/*` + `css/*`, `sw.js`, `firestore.rules`
 - `data/` datasets + builders · `docs/` plans (`slice1-plan.md`, `wave2-plan.md`), research, SSC transcription, Tim's date notes
-- Tests: `node tests/run.mjs` · last run 2026-10-15: 208 passed. Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (54/54)
+- Tests: `node tests/run.mjs` · last run 2026-10-16: 208 passed (takes ~2 min; run in background). Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (54/54)
 - Live: https://timothyhadfield.github.io/perfect-boyfriend/ · hosting: GitHub Pages

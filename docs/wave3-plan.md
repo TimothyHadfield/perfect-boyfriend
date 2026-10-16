@@ -38,3 +38,8 @@ Built by 4 parallel builders, one per area, each in its own worktree. Shared gro
 - Photos in memories — Firebase Storage needs the paid plan.
 - Arguments ↔ cycle timing — sensitive; Tim decides.
 - Other cities / cards, sharing a plan with her, couples mode — "public later" decisions are Tim's.
+
+## BUILT 2026-10-15
+- Shipped all 4 lanes, live @ c418bf1. ~~Sharing a plan with her is parked~~ superseded: wave 4 built "Send to her".
+- Where the plan was wrong: Plan's preset Start box stuck at the old time (app.js kept typed values) → `data-nokeep`.
+- Verified: `node tests/run.mjs` 161/161; rules emulator 38/38; phone-view on live, 7 screens at 393×659 WebKit + 1440×900, clean.

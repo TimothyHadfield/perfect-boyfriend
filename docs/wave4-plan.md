@@ -37,3 +37,8 @@ Tim (2026-10-15): **"really think of all the possible new features we could add 
 | `w4-safety` | Repair helper + backup | `js/screens/arguments.js`, `css/arguments.css`, `js/logic/arguments.js`, `js/screens/settings.js`, `css/settings.css`, new `js/logic/backup.js`, tests |
 
 Groundwork done by manager: rules + `LISTS` allow `followUps`, `savedPlans` (deployed, 54/54); empty `card` screen registered (app.js, index.html, sw.js).
+
+## BUILT 2026-10-15
+- Shipped all 5 lanes, merged to main, live @ d815955 (sw CACHE pb-v10).
+- Where the plan was wrong: seasonal stops were added but the planner never picked them → manager added a seasonal boost + 30 km reach (~31% of Oct plans include one); corn mazes still too pricey to be picked. BYU MOA was planned after closing on some days → `closeByDay` per-weekday hours. Daylight Donuts moved to PG lost its card deals → `anyStore` flag.
+- Verified: `node tests/run.mjs` 208/208; rules emulator 54/54; phone-view on live (9 screens, WebKit 393×659 + 1440×900): no page scroll, no overflow, no console errors. Not on a real iPhone.

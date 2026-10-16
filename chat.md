@@ -24,3 +24,4 @@ _One entry per session, newest at the bottom, capped at 60 KB. Older entries are
 - **Built:** lists followUps + savedPlans (rules deployed); Card screen; quick capture + follow-ups; save/Calendar/Send plans; 20 seasonal stops + planner boost; Before you talk; backup/restore. Manager fix: BYU MOA real hours (closeByDay).
 - **Verified how:** `node tests/run.mjs` 208/208; rules emulator 54/54; live @ d815955 phone-view on 9 screens at 393×659 WebKit + 1440×900: no page scroll, no overflow, no console errors.
 - **Open:** real-iPhone checks (share sheet, .ics, Files); stop hours audit.
+- **2026-10-16:** "prepare md files for chat reset" → checkpoint; tests 208/208 re-run; BUILT sections added to wave3/wave4 plans. Waiting on Tim's next ask.
