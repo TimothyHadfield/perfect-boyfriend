@@ -118,3 +118,30 @@ test('nudges: enough content, short lines, stable per day, rotate with offset', 
   eq(nudgeFor(T('2026-10-18')).text, nudgeFor(T('2026-10-25'), -1).text, 'check-in changes weekly');
   ok(typeof nudgeFor(TODAY, -5).text === 'string', 'negative offset ok');
 });
+
+// Follow-ups ("ask how her interview went"): rows shaped like the followUps contract.
+const interview = { id: 'f1', text: 'Ask how her interview went', date: '2026-10-15', done: false };
+const examLate = { id: 'f2', text: 'Ask how the exam went', date: '2026-10-13', done: false };
+const tripLater = { id: 'f3', text: 'Ask about her trip', date: '2026-10-16', done: false };
+
+test('follow-up due today is the top suggestion, with Done', () => {
+  const s = suggest({ today: TODAY, dates: [bday, other], giftReminders: [flowers], dateLog: oldDate, cycles: onPeriod, followUps: [interview, tripLater] });
+  eq(s.kind, 'followup', 'beats a birthday 12 days out, gift reminder, gap and cycle');
+  eq(s.text, 'Ask how her interview went');
+  eq(s.done, 'f1');
+  ok(!s.go && !s.next, 'tap Done, not a screen');
+});
+
+test('follow-up: overdue counts (oldest first), done and future ones do not', () => {
+  eq(suggest({ today: TODAY, followUps: [interview, examLate] }).done, 'f2');
+  eq(suggest({ today: TODAY, followUps: [interview, examLate] }).late, 2);
+  ok(suggest({ today: TODAY, followUps: [tripLater] }).kind !== 'followup', 'tomorrow');
+  ok(suggest({ today: TODAY, followUps: [{ ...interview, done: true }] }).kind !== 'followup', 'done');
+  eq(suggest({ today: TODAY, followUps: [{ ...interview, done: true }], dates: [bday] }).kind, 'event', 'falls through to the birthday');
+});
+
+test('follow-up: a birthday or anniversary within 3 days still wins', () => {
+  eq(suggest({ today: T('2026-10-17'), dates: [anniv], followUps: [interview] }).kind, 'event', '3 days');
+  eq(suggest({ today: T('2026-10-16'), dates: [anniv], followUps: [interview] }).kind, 'followup', '4 days');
+  eq(suggest({ today: T('2026-10-20'), dates: [anniv], followUps: [interview] }).kind, 'event', 'today');
+});

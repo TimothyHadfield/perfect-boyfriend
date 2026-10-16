@@ -58,3 +58,18 @@ export function milestones(dates, today) {
   }
   return out.sort((x, y) => x.days - y.days);
 }
+
+// Saved plans (from Plan) dated today or later, as Coming up rows labelled "Date".
+// Same shape as upcoming() rows plus `plan: true`, so they sort in with dates and holidays.
+export function planRows(savedPlans, today) {
+  const t = dayNum(today);
+  const out = [];
+  for (const p of savedPlans || []) {
+    const d = p && parseYMD(p.date);
+    if (!d) continue;
+    const days = dayNum(d) - t;
+    if (days < 0) continue;
+    out.push({ id: p.id, plan: true, title: String(p.title || '').trim() || 'Date', type: 'plan', yearly: false, date: p.date, at: p.at || '', next: d, days });
+  }
+  return out.sort((a, b) => a.days - b.days || a.at.localeCompare(b.at));
+}
