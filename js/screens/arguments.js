@@ -1,17 +1,26 @@
 // Her > Arguments: a private log of arguments (topic, what set it off, what helped,
-// what made it worse, how it ended) and a Patterns view built from it.
-// Phone: Log · Patterns segmented control. Laptop: side by side.
+// what made it worse, how it ended), a Patterns view built from it, and a
+// "Before you talk" repair helper (checklist, repair lines, what worked before).
+// Phone: Log · Patterns · Before you talk segmented control. Laptop: Log beside the
+// other two (switch on small laptops, all three side by side on wide ones).
 // Never shown on Home (sensitive).
 import { esc, svg, topbar, banner, loadingOr, help, openEditor, closeEditor, editorHead, armDelete, flash } from '../ui.js';
 import { todayLocal, toYMD, shortDate, parseYMD } from '../logic/dates.js';
-import { OUTCOMES, outcomeName, sortLog, topicList, daysSinceLast, patterns, hasPatterns, PATTERN_MIN, cleanEntry } from '../logic/arguments.js';
+import { OUTCOMES, outcomeName, sortLog, topicList, daysSinceLast, patterns, hasPatterns, PATTERN_MIN, cleanEntry, workedBefore, CHECKLIST, REPAIR_LINES } from '../logic/arguments.js';
 
-// Source for the tips: The Gottman Institute, "The Four Horsemen"
+// Sources for "Before you talk": The Gottman Institute on soft startup, repair attempts
+// and flooding (take a 20-minute break), e.g.
 // https://www.gottman.com/blog/the-four-horsemen-recognizing-criticism-contempt-defensiveness-and-stonewalling/
-const TIPS = 'Pick a calm time to talk. · Start soft: "I feel… I need…" · Listen first; own your part. · Too heated? Take a 20-minute break. — Source: The Gottman Institute';
+// https://www.gottman.com/blog/r-is-for-repair/
+const WHY_CHECK = 'A racing heart shuts down listening; about 20 minutes apart calms it. How a talk starts usually decides how it ends, so start gently. (Gottman research)';
+const WHY_WORKED = 'From "What helped" in your log, most used first.';
+const WHY_LINES = 'Small repair attempts like these calm a fight down. Couples who use them recover faster. (Gottman research)';
 
 const INTENSITY = [[1, 'Mild'], [2, 'Medium'], [3, 'Big']];
-let view = 'log';   // phone only: which panel shows
+const VIEWS = [['log', 'Log'], ['patterns', 'Patterns'], ['talk', 'Before you talk']];
+let view = 'log';        // phone: which panel shows
+let side = 'patterns';   // small laptop: what the right column shows
+const ticked = new Set(); // checklist ticks (this visit only, never saved)
 
 const dots = (n) => `<span class="arg-dots" aria-label="Intensity ${n} of 3">${[1, 2, 3].map((i) => `<i${i <= n ? ' class="on"' : ''}></i>`).join('')}</span>`;
 const dateText = (s) => shortDate(parseYMD(s), parseYMD(s) && parseYMD(s).y !== todayLocal().y);
@@ -36,6 +45,23 @@ function patternBlock(p) {
   </section>`;
 }
 
+function talkPanel(list) {
+  const worked = workedBefore(list, 3);
+  const head = (t, why) => `<h3 class="talk-head">${t}${help(why)}</h3>`;
+  return `<div class="talk">
+    ${head('Checklist', WHY_CHECK)}
+    <div class="talk-checks">${CHECKLIST.map((t, i) => `<button type="button" class="talk-check" data-tick="${i}" aria-pressed="${ticked.has(i)}"><i aria-hidden="true"></i><span>${esc(t)}</span></button>`).join('')}</div>
+    ${head('Worked before', WHY_WORKED)}
+    ${worked.length
+    ? `<div class="talk-worked">${worked.map((w) => `<div class="pat-line"><span class="pat-v">${esc(w.phrase)}</span><span class="pat-n">×${w.n}</span></div>`).join('')}</div>`
+    : '<p class="empty">Log what helped to see it here.</p>'}
+    ${head('Try saying', WHY_LINES)}
+    <div class="talk-lines">${REPAIR_LINES.map((t) => `<span class="talk-line">${esc(t)}</span>`).join('')}</div>
+  </div>`;
+}
+
+const segBtns = (opts, cur) => opts.map(([k, n]) => `<button type="button" role="radio" data-view-btn="${k}" aria-checked="${k === cur}">${n}</button>`).join('');
+
 function render({ S, subtabs }) {
   const list = S.arguments || [];
   const today = todayLocal();
@@ -44,7 +70,7 @@ function render({ S, subtabs }) {
   const pats = hasPatterns(list) ? patterns(list, today) : [];
   const stats = `<div class="arg-stats">
       <div class="arg-card"><span class="arg-label">Days since last</span><span class="arg-big">${since === null ? '–' : since}</span></div>
-      <div class="arg-card"><span class="arg-label">Before you talk${help(TIPS)}</span><span class="arg-tip">Calm time · listen first</span></div>
+      <button type="button" class="arg-card arg-card-btn" data-view-btn="talk"><span class="arg-label">Before you talk</span><span class="arg-tip">Calm time · listen first</span></button>
     </div>`;
   const logPanel = log.length
     ? `<div class="list">${log.map(logRow).join('')}</div>`
@@ -52,13 +78,14 @@ function render({ S, subtabs }) {
   const patPanel = pats.length
     ? `<div class="pat-cols"><span>Topic</span><span class="pat-num">90d</span><span class="pat-num all">All</span></div>${pats.map(patternBlock).join('')}`
     : `<p class="empty">Shows up after ${PATTERN_MIN} logs.</p>`;
-  const body = `<div class="arg-wrap" data-view="${view}">
-      <div class="seg arg-seg" role="radiogroup" aria-label="View">
-        <button type="button" role="radio" data-view-btn="log" aria-checked="${view === 'log'}">Log</button>
-        <button type="button" role="radio" data-view-btn="patterns" aria-checked="${view === 'patterns'}">Patterns</button>
-      </div>
+  const body = `<div class="arg-wrap" data-view="${view}" data-side="${side}">
+      <div class="seg arg-seg" role="radiogroup" aria-label="View">${segBtns(VIEWS, view)}</div>
       <div class="arg-col arg-col-log">${stats}<h2 class="sec-head arg-colhead">Log</h2><div class="arg-scroll">${logPanel}</div></div>
-      <div class="arg-col arg-col-pat"><h2 class="sec-head arg-colhead">Patterns${help('Most common in the last 90 days. "Helped" and "Worse" count the phrases you typed (split by commas).')}</h2><div class="arg-scroll">${patPanel}</div></div>
+      <div class="arg-side">
+        <div class="seg arg-seg2" role="radiogroup" aria-label="Right panel">${segBtns(VIEWS.slice(1), side)}</div>
+        <div class="arg-col arg-col-pat"><h2 class="sec-head arg-colhead">Patterns${help('Most common in the last 90 days. "Helped" and "Worse" count the phrases you typed (split by commas).')}</h2><div class="arg-scroll">${patPanel}</div></div>
+        <div class="arg-col arg-col-talk"><h2 class="sec-head arg-colhead">Before you talk</h2><div class="arg-scroll">${talkPanel(list)}</div></div>
+      </div>
     </div>`;
   const add = `<button class="icon-btn" data-new-arg aria-label="Log an argument">${svg('plus')}</button>`;
   return `${topbar('Her', add)}${subtabs}${banner(S.info)}<div class="pane arg-pane">${loadingOr(S.info, S.argumentsLoaded, body)}</div>`;
@@ -128,8 +155,19 @@ export default {
       if (v) {
         // Switch panels in place (no re-render, nothing else moves).
         view = v.dataset.viewBtn;
-        root.querySelector('.arg-wrap').dataset.view = view;
-        root.querySelectorAll('[data-view-btn]').forEach((b) => b.setAttribute('aria-checked', String(b === v)));
+        if (view !== 'log') side = view;
+        const wrap = root.querySelector('.arg-wrap');
+        wrap.dataset.view = view;
+        wrap.dataset.side = side;
+        root.querySelectorAll('.arg-seg [data-view-btn]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.viewBtn === view)));
+        root.querySelectorAll('.arg-seg2 [data-view-btn]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.viewBtn === side)));
+        return;
+      }
+      const tick = ev.target.closest('[data-tick]');
+      if (tick) {
+        const i = +tick.dataset.tick;
+        if (ticked.has(i)) ticked.delete(i); else ticked.add(i);
+        tick.setAttribute('aria-pressed', String(ticked.has(i)));
         return;
       }
       const t = ev.target.closest('[data-new-arg],[data-edit-arg]');
