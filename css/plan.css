@@ -109,8 +109,40 @@ a.pl-name:active { color: var(--accent); }
 .pl-talk .pl-k { flex: none; padding-top: 2px; }
 .pl-k { display: inline-block; width: 46px; margin-right: 10px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
 .pl-actions { flex: none; gap: 8px; }
-.pl-actions .btn { padding: 0 10px; text-decoration: none; font-size: var(--fs-md); }
+.pl-actions .btn { flex: 1 1 auto; gap: 6px; padding: 0 10px; text-decoration: none; font-size: var(--fs-md); white-space: nowrap; }
 .pl-actions .btn[disabled] { opacity: .75; }
+
+/* save (bookmark in the summary row): filled gold when this plan is saved */
+.pl-save { flex: none; margin: -4px -6px -4px auto; color: var(--ink-faint); }
+.pl-wx + .pl-save, .pl-preset-tag + .pl-save { margin-left: 0; }
+.pl-save[aria-pressed="true"] { color: var(--accent); }
+.pl-save[aria-pressed="true"] svg { fill: var(--accent); }
+
+/* ... menu: Calendar and Send float above the button, so nothing moves */
+.pl-more { position: relative; flex: none; display: flex; }
+.pl-actions .pl-more-btn { flex: none; width: 44px; padding: 0; }
+.pl-more-btn[aria-expanded="true"] { background: var(--raised-hi); }
+.pl-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 4px;
+  border-radius: var(--r);
+  background: var(--raised-hi);
+  box-shadow: 0 8px 24px -6px rgb(0 0 0 / .6);
+  animation: fade-in var(--t) var(--ease-out);
+}
+.pl-menu button { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: 6px; font-size: var(--fs-lg); color: var(--ink); text-align: left; white-space: nowrap; }
+.pl-menu button:active { background: var(--raised); }
+.pl-menu svg { width: 18px; height: 18px; flex: none; color: var(--ink-soft); }
+
+/* Card link in the top bar */
+.pl-card-link { display: flex; align-items: center; padding: 0 8px; font-size: var(--fs-md); font-weight: 600; text-decoration: none; }
+.pl-card-link:active { color: var(--accent); }
 
 /* Laptop: controls left, plan + map sketch right. */
 @media (min-width: 860px) {

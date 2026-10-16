@@ -3,13 +3,17 @@
 // "We did this" saves a dateLog row (with stopIds) and one sscUses row per card deal used.
 // Also loads data/drive-times.json (road times) and the Open-Meteo forecast (js/logic/weather.js); both optional.
 // Auto plans learn from S.dateLog (skip recent and 'meh' stops, favor 'loved'); Tim's plans are never filtered.
-// Contract: see the top of js/app.js. Styles: css/plan.css. Logic: js/logic/plan.js.
+// Save (bookmark) keeps one `savedPlans` row per day; picking that day shows the saved plan until Shuffle.
+// The ... menu: Calendar (.ics, one event per stop) and Send (text for her via the share sheet or clipboard).
+// Owns the `savedPlans` subscription (S.savedPlans). Contract: see the top of js/app.js. Styles: css/plan.css.
+// Logic: js/logic/plan.js, js/logic/share.js.
 import { esc, svg, topbar, banner, help, flash } from '../ui.js';
 import {
   OREM, VIBES, TIM_PLANS, dayName, fmtTime, makePlan, planFromStops, swapStop, weekAhead, defaultDay,
   mapsUrl, appleMapsUrl, logRows, dealLabel, stopPoint, driveTable, toMin,
 } from '../logic/plan.js';
 import { getForecast, badWeather, wxKind } from '../logic/weather.js';
+import { savedRow, sameStops, savedFor, shareText, buildPlanIcs, planIcsName, hhmm } from '../logic/share.js';
 
 const ICON = {
   swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
@@ -23,10 +27,16 @@ const ICON = {
   rain: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
   snow: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM8 19h.01M12 18h.01M16 19h.01M10 21.5h.01M14 21.5h.01"/>',
   storm: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 15zM12.5 15l-2 3.5h3l-2 3.5"/>',
+  save: '<path d="M7 3.5h10a1 1 0 0 1 1 1v16l-6-4.2-6 4.2v-16a1 1 0 0 1 1-1z"/>',
+  more: '<path d="M5.5 12h.01M12 12h.01M18.5 12h.01" stroke-width="3.2"/>',
+  send: '<path d="M12 14.5v-11M8 7.5l4-4 4 4M8.5 10.5H6v10h12v-10h-2.5"/>',
 };
 const ico = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
-const BUDGETS = [[10, '$10'], [20, '$20'], [30, '$30'], [50, '$50'], [null, 'Any']];
+// The Starving Student Card screen (#/card). ui.js has no card icon, so it's a text label.
+const CARD_LINK = '<a class="link-btn pl-card-link" href="#/card">Card</a>';
+
+const BUDGETS =[[10, '$10'], [20, '$20'], [30, '$30'], [50, '$50'], [null, 'Any']];
 
 const st = {
   stops: null, loadErr: false, loading: false,
@@ -38,6 +48,9 @@ const st = {
   times: null,          // road drive times (data/drive-times.json), or null -> estimates
   wx: null,             // forecast by 'YYYY-MM-DD', or null (offline)
   mine: new Set(),      // dateLog ids saved here this session (so logging doesn't reshuffle the plan)
+  pinned: null,         // a fixed plan shown for a day: {ymd, ids, at} (the saved plan, or one just saved)
+  pinCheck: null,       // the day whose saved plan was last looked up
+  more: false,          // the ... menu is open
 };
 
 const getJson = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ' ' + r.status); return r.json(); });
@@ -94,6 +107,12 @@ function currentPlan(ctx, w) {
     return t ? presetPlan(t, ctx, w) : null;
   }
   const o = opts(ctx, w);
+  const pin = st.pinned && st.pinned.ymd === st.ymd ? st.pinned : null;
+  const pinStops = pin ? pin.ids.map(byId) : [];
+  if (pin && pinStops.length && pinStops.every(Boolean)) {
+    const p = planFromStops(pinStops, { ...o, firstAt: pin.at });
+    if (p) return { ...p, ymd: st.ymd, pinned: true };
+  }
   // Weather only reshapes the plan when it turns bad; a nicer forecast just updates what to wear.
   const wet = !!o.weather && badWeather(o.weather, toMin(o.start));
   const sig = JSON.stringify([st.ymd, o.start, o.budget, o.vibe, o.origin.lat, o.origin.lng, o.seed, wet, history(ctx).sig]);
@@ -117,9 +136,9 @@ function dayChips(w, sel) {
     `<button type="button" role="radio" aria-checked="${d.ymd === sel}" data-day="${d.ymd}"><small>${dayName(d.day)}</small>${d.date}</button>`).join('')}</div>`;
 }
 
-function controls() {
+function controls(plan) {
   const t = st.preset && TIM_PLANS.find((x) => x.key === st.preset);
-  const shown = t ? t.at : st.start;
+  const shown = t ? t.at : plan && plan.pinned ? hhmm(plan.start) : st.start;   // a saved plan: when you leave
   const timeOk = /^\d\d:\d\d$/.test(shown) ? shown : '18:00';
   return `<div class="pl-opts">
     <label class="pl-opt"><small>Start</small><input id="pl-start" data-nokeep type="time" value="${esc(timeOk)}"></label>
@@ -143,6 +162,7 @@ function timList(ctx, w) {
 }
 
 function timeline(plan) {
+  const fixed = st.preset || plan.pinned;
   const from = st.origin === OREM ? 'Orem' : 'start';
   return `<ol class="pl-tl">${plan.items.map((x, i) => {
     const s = x.stop;
@@ -157,7 +177,7 @@ function timeline(plan) {
         <span class="pl-time">${fmtTime(x.start).replace(' ', '<small>')}</small></span>
         <span class="pl-mid">${name}<span class="pl-sub${x.deal ? ' has-deal' : ''}">${sub}</span></span>
         <span class="pl-cost">$${x.price}</span>
-        ${st.preset ? '' : `<button type="button" class="icon-btn small pl-swap" data-swap="${i}" aria-label="Swap ${esc(s.short || s.name)}">${ico('swap')}</button>`}
+        ${fixed ? '' : `<button type="button" class="icon-btn small pl-swap" data-swap="${i}" aria-label="Swap ${esc(s.short || s.name)}">${ico('swap')}</button>`}
       </li>`;
   }).join('')}</ol>`;
 }
@@ -195,6 +215,7 @@ function planView(plan, ctx) {
   const maps = mapsUrl(plan, st.origin);
   const wx = plan.weather;
   const kind = wx && wxKind(wx.code);
+  const saved = (ctx.S.savedPlans || []).some((r) => sameStops(r, plan));
   return `<div class="pl-main">
     <div class="pl-sum">
       <span><strong>$${plan.total}</strong> total</span><span class="pl-dot">·</span><span><strong>${plan.drive} min</strong> ${plan.driveEst ? 'est. ' : ''}driving</span>
@@ -202,6 +223,7 @@ function planView(plan, ctx) {
       ${help('For two, after card deals. Drives are road routes plus parking; "est." is a straight-line guess. Bad weather favors indoor stops.')}
       ${st.preset ? `<span class="pl-preset-tag">${esc(plan.name)}</span>` : ''}
       ${wx ? `<span class="pl-wx" aria-label="Forecast high ${wx.hi}°, low ${wx.lo}°">${ico(kind)}${wx.hi}°</span>` : ''}
+      <button type="button" class="icon-btn small pl-save" id="pl-save" aria-pressed="${saved}" aria-label="${saved ? 'Saved plan' : 'Save plan'}">${ico('save')}</button>
     </div>
     <div class="pl-body">${timeline(plan)}${miniMap(plan)}</div>
     <div class="pl-bw">
@@ -212,9 +234,57 @@ function planView(plan, ctx) {
     <div class="btn-row pl-actions">
       <button type="button" class="btn" id="pl-shuffle">${ico('shuffle')}${st.preset ? 'New plan' : 'Shuffle'}</button>
       ${maps ? `<a class="btn" href="${esc(maps)}" target="_blank" rel="noopener">${ico('map')}Maps</a>` : ''}
+      <span class="pl-more">
+        <button type="button" class="btn pl-more-btn" id="pl-more" aria-label="More" aria-expanded="${st.more}">${ico('more')}</button>
+        ${st.more ? `<span class="pl-menu" role="menu">
+          <button type="button" role="menuitem" id="pl-ics">${svg('cal')}Add to Calendar</button>
+          <button type="button" role="menuitem" id="pl-send">${ico('send')}Send to her</button>
+        </span>` : ''}
+      </span>
       <button type="button" class="btn btn-primary" id="pl-did"${done ? ' disabled' : ''}>${done ? ico('check') + 'Logged' : 'We did this'}</button>
     </div>
   </div>`;
+}
+
+/* ---------------- calendar, send ---------------- */
+
+function downloadPlanIcs(plan) {
+  const url = URL.createObjectURL(new Blob([buildPlanIcs(plan, new Date())], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = planIcsName(plan);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// The share sheet when there is one (iPhone); otherwise the clipboard and a toast.
+function sendPlan(text) {
+  if (navigator.share) {
+    navigator.share({ text }).catch((err) => { if (err && err.name !== 'AbortError') copyText(text); });
+    return;
+  }
+  copyText(text);
+}
+
+function copyText(text) {
+  const done = () => flash('Plan copied. Paste it to her.');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, () => flash('Can\'t copy here.'));
+  } else flash('Can\'t copy here.');
+}
+
+// Tapping anywhere outside the ... menu closes it.
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', (e) => {
+    if (!st.more || (e.target.closest && e.target.closest('.pl-more'))) return;
+    st.more = false;
+    const m = document.querySelector('.pl-menu');
+    if (m) m.remove();
+    const b = document.getElementById('pl-more');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  });
 }
 
 /* ---------------- screen ---------------- */
@@ -223,23 +293,36 @@ export default {
   key: 'plan',
   title: 'Plan',
   subscribe(ctx) {
-    return [ctx.backend.watchList('sscUses', (list) => { ctx.S.sscUses = list; ctx.render(); })];
+    ctx.S.savedPlans = [];
+    ctx.S.savedPlansLoaded = false;
+    st.pinned = null;
+    st.pinCheck = null;
+    return [
+      ctx.backend.watchList('sscUses', (list) => { ctx.S.sscUses = list; ctx.render(); }),
+      ctx.backend.watchList('savedPlans', (list) => { ctx.S.savedPlans = list; ctx.S.savedPlansLoaded = true; ctx.render(); }),
+    ];
   },
   render(ctx) {
     const { S } = ctx;
     load(ctx);
     const w = week();
     if (!st.ymd || !w.find((d) => d.ymd === st.ymd)) st.ymd = defaultDay(w);
+    // Picking a day (or opening Plan) shows that day's saved plan, if there is one.
+    if (S.savedPlansLoaded && st.pinCheck !== st.ymd) {
+      st.pinCheck = st.ymd;
+      const sv = savedFor(S.savedPlans, st.ymd);
+      st.pinned = sv ? { ymd: sv.date, ids: sv.stops.map((s) => s.id), at: sv.at } : null;
+    }
     if (!st.stops) {
-      return `${topbar('Plan')}${banner(S.info)}<div class="pane"><p class="empty">${st.loadErr ? 'Can\'t load the date spots right now.' : 'Loading…'}</p></div>`;
+      return `${topbar('Plan', CARD_LINK)}${banner(S.info)}<div class="pane"><p class="empty">${st.loadErr ? 'Can\'t load the date spots right now.' : 'Loading…'}</p></div>`;
     }
     const plan = currentPlan(ctx, w);
     const selDay = st.preset && plan ? plan.ymd : st.ymd;
-    return `${topbar('Plan')}${banner(S.info)}
+    return `${topbar('Plan', CARD_LINK)}${banner(S.info)}
       <div class="pane pl-pane">
         <div class="pl-side">
           ${dayChips(w, selDay)}
-          ${controls()}
+          ${controls(plan)}
           ${timList(ctx, w)}
         </div>
         ${planView(plan, ctx)}
@@ -249,14 +332,14 @@ export default {
     if (!st.stops) return;
     const redraw = () => ctx.render();
     root.querySelectorAll('[data-day]').forEach((b) => {
-      b.onclick = () => { st.ymd = b.dataset.day; st.preset = null; redraw(); };
+      b.onclick = () => { st.ymd = b.dataset.day; st.preset = null; st.pinned = null; st.pinCheck = null; st.more = false; redraw(); };
     });
     const start = root.querySelector('#pl-start');
-    if (start) start.onchange = () => { if (/^\d\d:\d\d$/.test(start.value)) { st.start = start.value; st.preset = null; redraw(); } };
+    if (start) start.onchange = () => { if (/^\d\d:\d\d$/.test(start.value)) { st.start = start.value; st.preset = null; st.pinned = null; redraw(); } };
     const budget = root.querySelector('#pl-budget');
-    if (budget) budget.onchange = () => { st.budget = budget.value === '' ? null : +budget.value; st.preset = null; redraw(); };
+    if (budget) budget.onchange = () => { st.budget = budget.value === '' ? null : +budget.value; st.preset = null; st.pinned = null; redraw(); };
     const vibe = root.querySelector('#pl-vibe');
-    if (vibe) vibe.onchange = () => { st.vibe = vibe.value; st.preset = null; redraw(); };
+    if (vibe) vibe.onchange = () => { st.vibe = vibe.value; st.preset = null; st.pinned = null; redraw(); };
     const near = root.querySelector('#pl-near');
     if (near) near.onclick = () => {
       if (st.origin !== OREM) { st.origin = OREM; redraw(); return; }
@@ -272,6 +355,49 @@ export default {
     const shuffle = root.querySelector('#pl-shuffle');
     if (shuffle) shuffle.onclick = () => {
       if (st.preset) st.preset = null; else st.seed++;
+      st.pinned = null;
+      st.more = false;
+      redraw();
+    };
+    const save = root.querySelector('#pl-save');
+    if (save) save.onclick = () => {
+      const plan = currentPlan(ctx, week());
+      if (!plan) return;
+      if (!ctx.S.info.uid) { flash('Not connected yet.'); return; }
+      const rows = ctx.S.savedPlans || [];
+      const mine = rows.find((r) => sameStops(r, plan));
+      const ids = plan.items.map((x) => x.stop.id);
+      try {
+        if (mine) {
+          ctx.backend.deleteListItem('savedPlans', mine.id);
+          // Keep showing the same stops; Shuffle or another day moves on.
+          if (!st.preset) st.pinned = { ymd: plan.ymd, ids, at: savedRow(plan).at };
+          flash('Unsaved.');
+        } else {
+          const old = savedFor(rows, plan.ymd);       // one saved plan per day: replace it
+          const id = old ? old.id : ctx.backend.newListId('savedPlans');
+          const row = savedRow(plan, st.preset ? plan.name : undefined);
+          ctx.backend.saveListItem('savedPlans', { id, ...row });
+          if (!st.preset) { st.pinned = { ymd: plan.ymd, ids, at: row.at }; st.pinCheck = plan.ymd; }
+          flash(old ? `Saved. Replaces ${dayName(plan.day)}'s other plan.` : 'Saved.');
+        }
+      } catch (err) { flash(ctx.backend.friendlyError(err)); return; }
+      redraw();
+    };
+    const more = root.querySelector('#pl-more');
+    if (more) more.onclick = () => { st.more = !st.more; redraw(); };
+    const ics = root.querySelector('#pl-ics');
+    if (ics) ics.onclick = () => {
+      st.more = false;
+      const plan = currentPlan(ctx, week());
+      if (plan) downloadPlanIcs(plan);
+      redraw();
+    };
+    const send = root.querySelector('#pl-send');
+    if (send) send.onclick = () => {
+      st.more = false;
+      const plan = currentPlan(ctx, week());
+      if (plan) sendPlan(shareText(plan));      // first, while the tap still counts as a user gesture
       redraw();
     };
     root.querySelectorAll('[data-swap]').forEach((b) => {
