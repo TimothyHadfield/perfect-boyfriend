@@ -1,1 +1,80 @@
-/* Card screen (SSC deal browser). */
+/* Card screen (SSC deal browser, js/screens/card.js). Owned by that screen only.
+   Phone: count + switch, search, section chips, then the list (only the list scrolls).
+   Laptop: the list on the left, the picked deal in a panel on the right. */
+
+.cd-pane { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.cd-browse { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.cd-detail { display: none; }
+
+.cd-top { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 32px; }
+.cd-count { font-size: var(--fs-sm); font-weight: 600; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cd-hide { display: flex; align-items: center; gap: 8px; font-size: var(--fs-md); color: var(--ink-soft); font-weight: 600; }
+.cd-hide .switch { transform: scale(.82); transform-origin: right center; margin-left: -6px; }
+
+.cd-q {
+  flex: none;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.cd-q:focus { outline: none; border-color: var(--accent); }
+
+.cd-chips { flex: none; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--pad)); padding: 0 var(--pad); }
+.cd-chips::-webkit-scrollbar { display: none; }
+.cd-chip {
+  flex: none;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  transition: background var(--t), transform 100ms;
+}
+.cd-chip:active { transform: scale(.96); }
+.cd-chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.cd-list { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 16px; }
+.cd-row { text-align: left; gap: 10px; }
+.cd-r1 { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.cd-r1 .row-title { flex: 0 1 auto; max-width: 75%; }
+.cd-where { flex: 1 1 0; min-width: 0; font-size: var(--fs-sm); color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-right { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; max-width: 32%; }
+.cd-code { font-size: var(--fs-sm); font-weight: 700; color: var(--accent); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-row.is-out .row-title, .cd-row.is-out .row-sub, .cd-row.is-out .count { color: var(--ink-faint); font-weight: 400; }
+
+/* the deal (editor on a phone, side panel on a laptop) */
+.cd-d { display: flex; flex-direction: column; gap: 6px; }
+.cd-d .sec-head { padding: 0; }
+.cd-biz { font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.cd-deal { font-size: var(--fs-lg); color: var(--ink-soft); }
+.cd-facts { display: flex; flex-direction: column; gap: 2px; margin: 6px 0 8px; padding-top: 8px; border-top: 1px solid var(--rule-soft); font-size: var(--fs-md); }
+.cd-fact { display: flex; gap: 10px; }
+.cd-k { flex: none; width: 52px; padding-top: 1px; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-faint); }
+.cd-left { font-weight: 700; color: var(--ink); }
+.cd-left.is-out { color: var(--ink-faint); font-weight: 400; }
+.cd-fact.is-code span:last-child { font-weight: 700; color: var(--accent); }
+.cd-d .btn[disabled] { opacity: .45; }
+.cd-head-gap { width: 44px; flex: none; }
+.cd-ed { flex: 1; }
+
+@media (min-width: 860px) {
+  .cd-pane { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 0 40px; max-width: 1180px; height: 100%; }
+  .cd-browse { min-height: 0; gap: 10px; }
+  .cd-chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+  .cd-row { padding: 8px 10px; border-radius: 7px; border-bottom-color: transparent; }
+  .cd-row:hover { background: var(--surface); }
+  .cd-row[aria-current="true"] { background: var(--accent-dim); }
+  .cd-detail { display: block; min-height: 0; overflow-y: auto; padding: 4px 0 16px; }
+  .cd-biz { font-size: 22px; }
+  .cd-detail .btn-col { max-width: 260px; }
+}
