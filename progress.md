@@ -24,7 +24,7 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
 ## Authorized next steps
 - 2026-10-15 · Slice 1 and wave 2 (all four features) — done.
 - 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement") — done, all 4 merged and live @ c418bf1.
-- Nothing else open. Next work comes from Tim.
+- 2026-10-15 · Wave 4, `docs/wave4-plan.md` ("really think of all the possible new features … implement the ones that you think we should have"): 5 builders running (w4-capture, w4-plan, w4-card, w4-seasonal, w4-safety). Groundwork done: lists followUps + savedPlans (rules deployed 54/54), empty Card screen registered. At merge: add new logic/data files to sw.js + bump CACHE (pb-v6 → v7); w4-seasonal and w4-plan both may touch plan stop behaviour — merge seasonal first, rerun tests.
 
 ## Standing instructions (Tim's words)
 - "Right now we'll just focus on Orem Utah and Pair it with the Starving Student Card"
