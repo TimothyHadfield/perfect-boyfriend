@@ -210,7 +210,7 @@ export function saveMonthlyBudget(dollars) {
 
 // One doc per row at users/{uid}/{name}/{id}. Each screen owns the shape of its rows;
 // these helpers only check the list name, strip the id, and stamp updatedAt.
-export const LISTS = ['gifts', 'dateLog', 'giftReminders', 'cycles', 'arguments', 'sscUses'];
+export const LISTS = ['gifts', 'dateLog', 'giftReminders', 'cycles', 'arguments', 'sscUses', 'followUps', 'savedPlans'];
 function checkList(name) {
   if (!LISTS.includes(name)) throw new Error('Unknown list ' + name);
 }
