@@ -12,6 +12,12 @@ export const PARK_MIN = 2;          // parking and walking in
 export const MAX_KM = 20;           // stops farther than this from the start aren't used
 export const MAX_WAIT = 75;         // longest wait for a fixed-time stop (lessons, a show)
 export const LATEST_END = 24 * 60 + 30;
+export const SEASON_KM = 30;        // in-season seasonal stops (corn mazes, lights) may be this far
+// Tuned 2026-10-15: October auto plans include a seasonal stop ~31% of the time (Fri/Sat, all budgets/vibes/starts).
+export const SEASON_BONUS = 6;      // score points off for an in-season seasonal stop (lower wins)
+export const SEASON_PAY = 1;        // plus this much of its price (up to $30)
+export const SEASON_NEAR = 20;  // km "closer" a seasonal stop counts as when picking candidates
+const isSeasonal = (s) => !!s && Array.isArray(s.tags) && s.tags.includes('seasonal');
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const dayName = (d) => DAY_NAMES[d];
@@ -303,12 +309,14 @@ function vibeOk(stop, vibe) {
   return true;
 }
 
-// Stops that could go in a plan for these options (any kind).
+// Stops that could go in a plan for these options (any kind). Seasonal stops (only open in their months)
+// may sit farther out: Luminaria, Cornbelly's Lehi and Salem Pond are 22-28 km from Orem.
 export function eligible(all, o) {
   const origin = o.origin || OREM;
+  const max = o.maxKm || MAX_KM;
   return all.filter((s) => s.auto !== false
     && stopOpen(s, o.day, o.month)
-    && (s.home || haversineKm(origin, s) <= (o.maxKm || MAX_KM)));
+    && (s.home || haversineKm(origin, s) <= (isSeasonal(s) ? Math.max(max, SEASON_KM) : max)));
 }
 
 // Rain, snow, or very cold/hot (o.weather): outdoor stops cost a lot, so indoor plans win.
@@ -321,7 +329,12 @@ function score(tl, o, marks) {
   const deals = tl.items.filter((x) => x.deal).length;
   const loved = marks ? tl.items.filter((x) => marks.loved.has(x.stop.id)).length : 0;
   const outside = outdoorBad(o) ? tl.items.filter((x) => isOutdoor(x.stop)).length : 0;
+  // In-season seasonal stops (eligible() already dropped out-of-season ones) get a boost, at most one per plan.
+  // Paid ones (corn mazes, Luminaria) get more of their price back, so they can beat cheap everyday stops.
+  const sea = tl.items.find((x) => isSeasonal(x.stop));
+  const season = sea ? SEASON_BONUS + Math.min(30, sea.price) * SEASON_PAY : 0;
   return tl.total + tl.drive * 0.5 + waits * 0.1 - picks * 3 - deals * 2 - loved * 8 + outside * 40 - tl.items.length * 5
+    - season
     + (o.budget != null && tl.total > o.budget ? 1000 : 0);
 }
 
@@ -393,7 +406,7 @@ export function makePlan(all, o) {
       const dist = (s) => {
         const p = stopPoint(s, origin);
         return haversineKm(at, p) + (nextLock ? haversineKm(p, stopPoint(nextLock, origin)) : 0) - (s.pick ? 1 : 0)
-          - (marks && marks.loved.has(s.id) ? 3 : 0) + (wet && isOutdoor(s) ? 8 : 0);
+          - (marks && marks.loved.has(s.id) ? 3 : 0) + (wet && isOutdoor(s) ? 8 : 0) - (isSeasonal(s) ? SEASON_NEAR : 0);
       };
       cands.sort((a, b) => dist(a) - dist(b) || (a.id < b.id ? -1 : 1));
       const k = Math.min(cands.length, 7);
