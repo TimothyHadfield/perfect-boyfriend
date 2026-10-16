@@ -7,7 +7,7 @@ _Last updated 2026-10-15 (end of kickoff chat). For Claude only; Tim doesn't rea
 3. Skim the last 3 entries of `chat.md`. Older history: `docs/archive/`.
 
 ## Goal right now
-Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, Plan with real drive times/weather/history/Talk line, Dates Past + monthly spending + budget in Settings, gift ideas from her profile, argument patterns). Waiting on Tim's reaction (real iPhone use, the unspecified design choices below). No build work is authorized beyond what he asks next.
+Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: gift idea / follow up / about her), follow-ups on Home, save/Calendar/Send for plans, Card screen (SSC deal browser, `#/card`, linked from Plan), 20 seasonal stops (planner boosted to pick them ~31% in Oct), Arguments "Before you talk", Settings backup/restore. Earlier waves (wave 3: smart Home suggestion + milestones, Plan with real drive times/weather/history/Talk line, Dates Past + monthly spending + budget in Settings, gift ideas from her profile, argument patterns). Waiting on Tim's reaction (real iPhone use, the unspecified design choices below). No build work is authorized beyond what he asks next.
 
 ## Status
 | Area | State | Notes |
@@ -24,7 +24,8 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
 ## Authorized next steps
 - 2026-10-15 · Slice 1 and wave 2 (all four features) — done.
 - 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement") — done, all 4 merged and live @ c418bf1.
-- 2026-10-15 · Wave 4, `docs/wave4-plan.md` ("really think of all the possible new features … implement the ones that you think we should have"): 5 builders running (w4-capture, w4-plan, w4-card, w4-seasonal, w4-safety). Groundwork done: lists followUps + savedPlans (rules deployed 54/54), empty Card screen registered. At merge: add new logic/data files to sw.js + bump CACHE (pb-v6 → v7); w4-seasonal and w4-plan both may touch plan stop behaviour — merge seasonal first, rerun tests.
+- 2026-10-15 · Wave 4, `docs/wave4-plan.md` ("really think of all the possible new features … implement the ones that you think we should have") — done, all 5 merged, live @ d815955.
+- Nothing else open. Next work comes from Tim.
 
 ## Standing instructions (Tim's words)
 - "Right now we'll just focus on Orem Utah and Pair it with the Starving Student Card"
@@ -38,7 +39,11 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
 ## Traps / rules that bite
 - **Agent worktrees:** `isolation: "worktree"` creates the worktree in the parent `Code Projects` repo (Estimator_Quiz), not this one. Have builders run `git -C "<this folder>" worktree add .claude/worktrees/<name> -b <branch>` themselves. Remove with `git worktree remove --force` (OneDrive locks files; a plain remove can fail "Permission denied").
 - **app.js keeps typed input values across re-renders** (by element id). An input whose value the screen sets itself must carry `data-nokeep` (Plan's Start box), or the old value sticks.
-- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this); bump `CACHE` when the shell list changes (now `pb-v6`).
+- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this); bump `CACHE` when the shell list changes (now `pb-v10`).
+- A new screen needs app.js SCREENS + index.html css link + sw.js entries; do that on main before a builder fills it (Card was done this way).
+- OneDrive locks `.claude/worktrees/*` and `.git/worktrees/*`: `git worktree remove --force` / `prune` can fail "Permission denied". Branches still delete fine; the weekly sweep cleans leftovers.
+- PowerShell `Set-Content -Encoding utf8` writes a BOM; strip it (node) before committing rules/JS.
+- Stop hours: `closeByDay` {weekday: minutes} in build-plan-stops OVERRIDE for per-day closing (BYU MOA). Most stops' hours are still unaudited.
 - Repo is public: never commit real partner data. Test account `claude-test-pb@example.com` (creds in gitignored `.claude/test/credentials.txt`); it holds test data. Guest (anonymous) mode is fine for headless checks; each run makes one anonymous Firebase user (harmless).
 - iOS home-screen app: Google sign-in redirect can't complete on GitHub Pages (Fitness Tracker lesson); app uses email only.
 - SSC: card deals not always honored; Tim says deals carry over year to year.
@@ -55,12 +60,14 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
   - Plan: default budget $20; preset names Provo dance / Pleasant Grove / The Rift / Redline; Pleasant Grove moved to Sat 10am (donut shop closed at night); Google Maps for the whole route, Apple Maps per stop; stops with no known price left out of auto plans; jacket Oct/Apr, coat Nov–Mar.
 
   - Wave 3: Home check-in question on Sundays, little-things nudge otherwise, tap card = next; milestones 100/200/500/1000 days (365 skipped when yearly); spending colour green to 60% of budget, red at 100%; budget under Holidays in Settings; gift chips "From her profile" (colors skipped, allergies/dislikes excluded + red warning); flowers remind every 2 weeks, others monthly; Patterns after 3 logs; bad weather = rain/snow ≥50%, storm, <35° or high ≥95°; coat <48°, jacket <62°; Plan "Talk" line (40 questions); drive legs +2 min parking.
+  - Wave 4: capture sheet drops from top on phone, "She mentioned…", About her "Label: value" split, section default Notes; follow-up top of Home below birthday/anniversary within 3 days; one saved plan per day (bookmark icon, replaces), Plan actions Shuffle · Maps · ⋯ (Add to Calendar, Send to her) · We did this; text for her has no prices/SSC; Card link is a text "Card" in Plan's top bar; Card hides used deals by default; "Before you talk" = Checklist / Worked before / Try saying (ticks not saved); backup restore only adds missing ids; seasonal boost 6 + price (≤$30), seasonal reach 30 km, Festival of Lights counted indoor.
 - 2026-10-15 · Tim: Daylight Donuts = the Pleasant Grove store (125 E State St), card deals kept there (`anyStore` in build-plan-stops.mjs) though the card names Saratoga Springs. PG preset now 34 min driving, $41.
 
 ## NOT verified
 - Anything on a real iPhone, including .ics import and Plan's "near me" location.
 - Plan drive times now come from OSRM (`data/drive-times.json`, rebuild with `node data/build-drive-times.mjs` after changing stops); only "Near me" uses the estimate. Date #1 totals $38 vs his $15–20 budget.
 - Wave 3 on screen: Home's gift-reminder/date-gap/cycle card variants, Plan "Near me" and offline forecast, Dates Past with many rows (scroll inside list) — unit tests only. Stop opening hours (e.g. BYU MOA on a Fri evening) not audited.
+- Wave 4: iPhone share sheet, .ics import of plan events, Files save of backup, capture date picker + keyboard on a real iPhone. Corn mazes ($38–52) still never auto-picked; Rowley's (37 km) out of reach; seasonal prices for Haunted Forest, Luminaria, Tulip Festival, tubing, Sundance snowshoe are estimates; sub-month date ranges only in stop notes (`docs/seasonal-notes.md`).
 - Gift allergy check matches words only ("Reese's" isn't flagged against peanuts).
 - Daylight Donuts uses the card's Saratoga Springs location (Tim wrote PG); Mooyah, Redline, Yummy Ice Cream coords approximate; food prices are estimates.
 - Plan logging confirmed only in guest mode on localhost (uses left dropped 3 → 2); not confirmed with the email test account on live.
@@ -73,10 +80,11 @@ Waves 2 and 3 are merged and live (wave 3: smart Home suggestion + milestones, P
 - ~~Local events feed~~ · 2026-10-15 · no reliable free CORS source; goes stale
 - ~~Photos in memories~~ · 2026-10-15 · Firebase Storage needs paid plan
 - ~~Arguments ↔ cycle timing~~ · 2026-10-15 · privacy; Tim's call, not offered yet
-- ~~Other cities/cards, share plan with her, couples mode~~ · 2026-10-15 · "public later", Tim decides
+- ~~Other cities/cards, couples mode~~ · 2026-10-15 · "public later", Tim decides (sending her the plan text was built in wave 4)
+- ~~Love language, cycle symptom log, passcode, setup wizard, themes, Spotify~~ · 2026-10-15 · wave 4 brainstorm, not built (reasons in `docs/wave4-plan.md`)
 
 ## Map
 - `index.html`, `js/app.js` (screen registry; contract at top), `js/ui.js` (shared UI), `js/backend.js` (Firebase + generic lists), `js/logic/*` (pure, tested), `js/screens/*` + `css/*`, `sw.js`, `firestore.rules`
 - `data/` datasets + builders · `docs/` plans (`slice1-plan.md`, `wave2-plan.md`), research, SSC transcription, Tim's date notes
-- Tests: `node tests/run.mjs` · last run 2026-10-15: 161 passed. Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (38/38)
+- Tests: `node tests/run.mjs` · last run 2026-10-15: 208 passed. Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (54/54)
 - Live: https://timothyhadfield.github.io/perfect-boyfriend/ · hosting: GitHub Pages

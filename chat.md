@@ -16,3 +16,11 @@ _One entry per session, newest at the bottom, capped at 60 KB. Older entries are
 - **Built:** `docs/wave3-plan.md`; `monthlyBudget` setting (rules deployed); 4 parallel builders: smart Home suggestion + milestones; Plan real drive times (OSRM matrix), weather (Open-Meteo), learn from history, Talk line; Dates Past (rate/note/add) + monthly spending + budget in Settings; gift ideas from her profile + argument patterns.
 - **Verified how:** `node tests/run.mjs` 161/161; rules emulator 38/38; live @ c418bf1 phone-view on all 7 screens at 393×659 WebKit and 1440×900 desktop: no page scroll, no overflow, no console errors.
 - **Open:** Daylight Donuts PG vs Saratoga (Tim's call); parked items in progress.md.
+- **Later same day:** Tim picked the PG Daylight Donuts store (question box); card deals kept there.
+
+## 2026-10-15 · Wave 4 (same chat)
+- **Asked:** "really think of all the possible new features we could add to the cite and once you're ready implement the ones that you think we should have."
+- **Decided (Claude):** 7 features from a ~20-idea brainstorm (`docs/wave4-plan.md`); rest parked with reasons.
+- **Built:** lists followUps + savedPlans (rules deployed); Card screen; quick capture + follow-ups; save/Calendar/Send plans; 20 seasonal stops + planner boost; Before you talk; backup/restore. Manager fix: BYU MOA real hours (closeByDay).
+- **Verified how:** `node tests/run.mjs` 208/208; rules emulator 54/54; live @ d815955 phone-view on 9 screens at 393×659 WebKit + 1440×900: no page scroll, no overflow, no console errors.
+- **Open:** real-iPhone checks (share sheet, .ics, Files); stop hours audit.
