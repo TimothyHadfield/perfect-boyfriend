@@ -25,3 +25,10 @@ _One entry per session, newest at the bottom, capped at 60 KB. Older entries are
 - **Verified how:** `node tests/run.mjs` 208/208; rules emulator 54/54; live @ d815955 phone-view on 9 screens at 393×659 WebKit + 1440×900: no page scroll, no overflow, no console errors.
 - **Open:** real-iPhone checks (share sheet, .ics, Files); stop hours audit.
 - **2026-10-16:** "prepare md files for chat reset" → checkpoint; tests 208/208 re-run; BUILT sections added to wave3/wave4 plans. Waiting on Tim's next ask.
+
+## 2026-10-17 · Batch 1 (builder from the manager)
+- **Asked (Tim via manager):** "any fixes or improvements you feel confident about go ahead and do, pretty much always." Brief: new builds reach phones without a hard refresh + build stamp; fix confident open bugs.
+- **Decided (Claude):** version check against live `js/version.js` instead of `?v=` on every import; stamp at the bottom of Settings.
+- **Built:** `js/version.js` + `js/logic/update.js`, app.js update check (open, return to screen, controllerchange, pageshow), sw.js `BUILD`/`cache: 'reload'`/`updateViaCache: 'none'`; savedFor newest; gift `added` ordering; one usesLeft. Commit f68631d.
+- **Verified how:** 16 new tests seen failing on c30d19e, then `node tests/run.mjs` 226/226 (branch and main); WebKit measurement script with a server flipping the build (busy 0 reloads, idle 1, same 0, cold open new build); phone-view 393 + desktop of Settings and Home on localhost: no overflow, no exceptions; live curl of js/version.js and sw.js shows 2026-10-17.1.
+- **Open:** real-iPhone home-screen check; Tim's 3 layout/data calls in progress.md NOT verified.

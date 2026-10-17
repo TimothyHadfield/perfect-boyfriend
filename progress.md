@@ -1,7 +1,7 @@
 # Perfect Boyfriend — progress (handoff for Claude)
 
 ## START HERE
-_Last updated 2026-10-16 (after wave 4, live @ d815955; chat reset checkpoint). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
+_Last updated 2026-10-17 (batch 1: build stamp + auto-update + 3 fixes, live @ f68631d, build 2026-10-17.1). For Claude only; Tim doesn't read this. Catch-up authorizes nothing: only "Authorized next steps" below is approved work._
 1. Read this file (it's short on purpose).
 2. Read `direction.md` (it overrules everything).
 3. Skim the last 3 entries of `chat.md`. Older history: `docs/archive/`.
@@ -20,13 +20,14 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 | Plan (Orem dates + SSC, price, bring, wear, drive times, Tim's 4 plans) | live | `data/plan-stops.json` (134, built by `data/build-plan-stops.mjs`); lists `dateLog`, `sscUses` |
 | Firebase `perfect-boyfriend-th` | live | Firestore us-central1, anonymous + email auth, github.io domain, anon auto-delete OFF |
 | Sweep 2026-10-16 (bugs, speed, handoff) | done | About her capture waits for the profile to load (could wipe it); Plan/Card no longer refetch in a loop when their data file fails; preconnect to Firebase hosts; suggestion button name matches its text; CLAUDE.md added. Open for Tim: guest "Sign in" abandons guest data (backend.js signIn), Plan hub ring overlaps actions row ~6px at 393px, 4-stop timeline cut off until scrolled |
+| Batch 1 2026-10-17 (updates + fixes) | live @ f68631d | Build stamp `2026-10-17.1` (js/version.js + sw.js, bottom of Settings); app reloads itself onto a newer build on open / return to screen when idle (no sheet, no focus, no tap); savedFor = newest by updatedAt; gift ideas sort by real time (ISO + plain day); Plan uses Card's usesLeft. Tests 226 |
 | SSC deals / Orem spots | data done | `data/ssc-deals.json` (421), `data/orem-spots.json` (110), `data/ssc-app-orem-2026-10-15.json` (620) |
 
 ## Authorized next steps
 - 2026-10-15 · Slice 1 and wave 2 (all four features) — done.
 - 2026-10-15 · Wave 3, `docs/wave3-plan.md` ("alright build everything that you think would be a good improvement") — done, all 4 merged and live @ c418bf1.
 - 2026-10-15 · Wave 4, `docs/wave4-plan.md` ("really think of all the possible new features … implement the ones that you think we should have") — done, all 5 merged, live @ d815955.
-- Nothing else open. Next work comes from Tim.
+- 2026-10-17 · Tim (via manager): "any fixes or improvements you feel confident about go ahead and do, pretty much always. You don't have to ask me." Not covered: redesigns, layout, wording, features, money, user data.
 
 ## Standing instructions (Tim's words)
 - "Right now we'll just focus on Orem Utah and Pair it with the Starving Student Card"
@@ -40,7 +41,8 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 ## Traps / rules that bite
 - **Agent worktrees:** `isolation: "worktree"` creates the worktree in the parent `Code Projects` repo (Estimator_Quiz), not this one. Have builders run `git -C "<this folder>" worktree add .claude/worktrees/<name> -b <branch>` themselves. Remove with `git worktree remove --force` (OneDrive locks files; a plain remove can fail "Permission denied").
 - **app.js keeps typed input values across re-renders** (by element id). An input whose value the screen sets itself must carry `data-nokeep` (Plan's Start box), or the old value sticks.
-- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this); bump `CACHE` when the shell list changes (now `pb-v10`).
+- New `js/logic/*.js` files must be added to `sw.js` SHELL (a test checks this). **Every release: bump BUILD in `js/version.js` and `sw.js` together** (test checks; cache name is `'pb-' + BUILD`).
+- Builders' worktrees go in `C:/Users/timha/wt/pb-<name>` (manager 2026-10-17: edits under `.claude/` raise permission prompts for Tim).
 - A new screen needs app.js SCREENS + index.html css link + sw.js entries; do that on main before a builder fills it (Card was done this way).
 - OneDrive locks `.claude/worktrees/*` and `.git/worktrees/*`: `git worktree remove --force` / `prune` can fail "Permission denied". Branches still delete fine; the weekly sweep cleans leftovers.
 - PowerShell `Set-Content -Encoding utf8` writes a BOM; strip it (node) before committing rules/JS.
@@ -62,6 +64,8 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 
   - Wave 3: Home check-in question on Sundays, little-things nudge otherwise, tap card = next; milestones 100/200/500/1000 days (365 skipped when yearly); spending colour green to 60% of budget, red at 100%; budget under Holidays in Settings; gift chips "From her profile" (colors skipped, allergies/dislikes excluded + red warning); flowers remind every 2 weeks, others monthly; Patterns after 3 logs; bad weather = rain/snow ≥50%, storm, <35° or high ≥95°; coat <48°, jacket <62°; Plan "Talk" line (40 questions); drive legs +2 min parking.
   - Wave 4: capture sheet drops from top on phone, "She mentioned…", About her "Label: value" split, section default Notes; follow-up top of Home below birthday/anniversary within 3 days; one saved plan per day (bookmark icon, replaces), Plan actions Shuffle · Maps · ⋯ (Add to Calendar, Send to her) · We did this; text for her has no prices/SSC; Card link is a text "Card" in Plan's top bar; Card hides used deals by default; "Before you talk" = Checklist / Worked before / Try saying (ticks not saved); backup restore only adds missing ids; seasonal boost 6 + price (≤$30), seasonal reach 30 km, Festival of Lights counted indoor.
+- 2026-10-17 · Auto-update: read live `js/version.js` (no-store) on open/return, reload once per build only when idle; no `?v=` on files (network-first SW already revalidates). Stamp "Build …" small muted at the bottom of Settings (Claude's placement).
+- 2026-10-17 · One `usesLeft` (card.js; missing printed uses = 1); `savedFor` newest by updatedAt (tie = later row); gift `added` written as ISO, plain-day rows read as local midnight (no migration).
 - 2026-10-15 · Tim: Daylight Donuts = the Pleasant Grove store (125 E State St), card deals kept there (`anyStore` in build-plan-stops.mjs) though the card names Saratoga Springs. PG preset now 34 min driving, $41.
 
 ## NOT verified
@@ -69,6 +73,8 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 - Plan drive times now come from OSRM (`data/drive-times.json`, rebuild with `node data/build-drive-times.mjs` after changing stops); only "Near me" uses the estimate. Date #1 totals $38 vs his $15–20 budget.
 - Wave 3 on screen: Home's gift-reminder/date-gap/cycle card variants, Plan "Near me" and offline forecast, Dates Past with many rows (scroll inside list) — unit tests only. Stop opening hours (e.g. BYU MOA on a Fri evening) not audited.
 - Wave 4: iPhone share sheet, .ics import of plan events, Files save of backup, capture date picker + keyboard on a real iPhone. Corn mazes ($38–52) still never auto-picked; Rowley's (37 km) out of reach; seasonal prices for Haunted Forest, Luminaria, Tulip Festival, tubing, Sundance snowshoe are estimates; sub-month date ranges only in stop notes (`docs/seasonal-notes.md`).
+- Auto-update on a real iPhone home-screen app (measured only in headless WebKit with a simulated hide/show: busy = no reload, idle = 1 reload onto the new build, same build = 0, cold open = new build with no extra reload). Firestore offline write queue across the reload not exercised.
+- Open for Tim (unchanged, his calls): guest "Sign in" drops guest data; Plan ring overlaps the actions row ~6px at 393px; 4-stop timeline cut off until scrolled.
 - Gift allergy check matches words only ("Reese's" isn't flagged against peanuts).
 - Mooyah, Redline, Yummy Ice Cream coords approximate; food prices are estimates.
 - Plan logging confirmed only in guest mode on localhost (uses left dropped 3 → 2); not confirmed with the email test account on live.
@@ -87,5 +93,5 @@ Waves 2–4 are merged and live. Wave 4: "She mentioned…" capture (+ on Home: 
 ## Map
 - `index.html`, `js/app.js` (screen registry; contract at top), `js/ui.js` (shared UI), `js/backend.js` (Firebase + generic lists), `js/logic/*` (pure, tested), `js/screens/*` + `css/*`, `sw.js`, `firestore.rules`
 - `data/` datasets + builders · `docs/` plans (`slice1-plan.md`, `wave2-plan.md`), research, SSC transcription, Tim's date notes
-- Tests: `node tests/run.mjs` · last run 2026-10-16: 208 passed (takes ~2 min; run in background). Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (54/54)
+- Tests: `node tests/run.mjs` · last run 2026-10-17: 226 passed (takes ~2 min; run in background). Rules: `firebase emulators:exec --only firestore "node tests/rules.emulator.mjs"` (54/54)
 - Live: https://timothyhadfield.github.io/perfect-boyfriend/ · hosting: GitHub Pages
