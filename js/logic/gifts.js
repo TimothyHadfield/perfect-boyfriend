@@ -24,10 +24,20 @@ export const PRESETS = [
 
 export const isGiven = (g) => !!parseYMD(g && g.date);
 
+// When an idea was added, in ms. Rows hold a full ISO time (quick add) or, in older rows,
+// a plain 'YYYY-MM-DD' (read as local midnight). Missing or unreadable = 0 (oldest).
+export function addedMs(g) {
+  const s = String((g && g.added) || '');
+  const day = parseYMD(s);
+  if (day) return new Date(day.y, day.m - 1, day.d).getTime();
+  const t = /^\d{4}-\d\d-\d\dT/.test(s) ? Date.parse(s) : NaN;
+  return Number.isFinite(t) ? t : 0;
+}
+
 // Ideas, newest added first.
 export function ideasOf(list) {
   return (list || []).filter((g) => !isGiven(g))
-    .sort((a, b) => String(b.added || '').localeCompare(String(a.added || '')) || String(a.title || '').localeCompare(String(b.title || '')));
+    .sort((a, b) => addedMs(b) - addedMs(a) || String(a.title || '').localeCompare(String(b.title || '')));
 }
 
 // Given gifts, newest date first.

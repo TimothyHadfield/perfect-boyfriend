@@ -21,11 +21,14 @@ A private, iPhone-first relationship helper Tim uses himself (built so others co
 - Phone check: `node ~/.claude/tools/phone-view.mjs <url>` (+ `--desktop`). Logged-in checks use the existing test account in `.claude/test/` (gitignored); never sign up new accounts.
 
 ## Deploy
-- Push to `main`; GitHub Pages serves it. Hard-refresh on the phone (the service worker is network-first, so a refresh gets the new build).
+- **Every release: bump the build stamp** in `js/version.js` (`BUILD = 'YYYY-MM-DD.N'`, N = release number that day) AND the same value in `sw.js` (`const BUILD`). `tests/build.test.mjs` fails if they differ. The stamp shows at the bottom of Settings.
+- Push to `main`; GitHub Pages serves it. Then curl `https://timothyhadfield.github.io/perfect-boyfriend/js/version.js` until it shows the new stamp.
+- Phones update on their own (no hard refresh): when the app opens or comes back on screen it reads the live `js/version.js` (no-store) and reloads once onto a newer build, but only if no sheet is open, no field is focused and nothing was tapped since it came back; otherwise it waits for the next return. The new `sw.js` bytes make the worker reinstall and refresh the offline copy (`cache: 'reload'`, `updateViaCache: 'none'`).
 - Rules deploy: `firebase deploy --only firestore:rules`. Auth providers: `firebase deploy --only auth`.
 
 ## Traps
-- New `js/logic/*.js` or a new screen must be listed in `sw.js` SHELL (a test checks it); bump `CACHE` when the list changes.
+- New `js/logic/*.js` or a new screen must be listed in `sw.js` SHELL (a test checks it). The cache name is `'pb-' + BUILD`, so bumping the build stamp renews it.
+- Plan and Card share one `usesLeft` (`js/logic/card.js`); `savedFor` picks the newest by `updatedAt`; gift `added` is ISO now, old rows may hold a plain day (`addedMs` reads both).
 - A new screen needs: an import in app.js SCREENS, a css link in index.html, and sw.js entries.
 - app.js keeps typed input values across re-renders by element id; an input whose value the screen sets itself needs `data-nokeep`.
 - `saveProfile` rewrites the whole profile list: only call it after `S.profileLoaded`, or existing items are wiped.

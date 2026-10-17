@@ -4,6 +4,7 @@
 // shareText(plan) -> a short text for her: day, times, places, what to wear. No prices, no card.
 // buildPlanIcs(plan, now) -> an .ics with one event per stop and one alarm 2 hours before the first.
 import { escapeText, foldLine } from './ics.js';
+import { stamp } from './card.js';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const pad = (n, w = 2) => String(n).padStart(w, '0');
@@ -51,10 +52,14 @@ export function sameStops(row, plan) {
   return row.stops.length === ids.length && row.stops.every((s, i) => s && s.id === ids[i]);
 }
 
-// The saved plan for a day (the newest if there are several).
+// The saved plan for a day (the newest saved if there are several; Firestore lists rows by id, not by time).
 export function savedFor(rows, ymd) {
-  const list = (rows || []).filter((r) => r && r.date === ymd && Array.isArray(r.stops) && r.stops.length);
-  return list.length ? list[list.length - 1] : null;
+  let best = null;
+  for (const r of rows || []) {
+    if (!r || r.date !== ymd || !Array.isArray(r.stops) || !r.stops.length) continue;
+    if (!best || stamp(r) >= stamp(best)) best = r;   // a tie keeps the later row, as before
+  }
+  return best;
 }
 
 // 'h:mm AM' the first time and whenever AM/PM flips; 'h:mm' otherwise.

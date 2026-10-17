@@ -12,6 +12,8 @@
 //   Register a screen by importing it into SCREENS below. Shared helpers live in js/ui.js.
 import * as backend from './backend.js';
 import { svg, closeEditor, showHelp, hideHelp } from './ui.js';
+import { BUILD } from './version.js';
+import { readBuild, shouldReload } from './logic/update.js';
 import home from './screens/home.js';
 import dates from './screens/dates.js';
 import plan from './screens/plan.js';
@@ -160,6 +162,46 @@ backend.onChange((info) => {
 render();
 backend.start();
 
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').catch((err) => console.warn('SW not registered', err));
+/* ---------------- new builds (2026-10-17) ----------------
+   A running page keeps its old code until it reloads, and the iPhone home-screen app can sit in the
+   background for days without one. So: read the live js/version.js past every cache when the app opens
+   and whenever it comes back on screen, and reload onto a newer build only if nothing can be lost
+   (no sheet open, no field focused, no tap yet since it came on screen). Otherwise wait for the next return. */
+let interacted = false;
+const markInteracted = () => { interacted = true; };
+['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, markInteracted, true));
+const triedKey = 'pb-reloaded-for';
+const sess = (v) => { try { if (v === undefined) return sessionStorage.getItem(triedKey); sessionStorage.setItem(triedKey, v); } catch (_) {} return null; };
+function busy() {
+  const a = document.activeElement;
+  return !!document.querySelector('.editor-backdrop') || !!(a && (a.matches('input, textarea, select') || a.isContentEditable));
 }
+let checking = false, reloading = false;
+async function checkBuild() {
+  if (checking || reloading || location.protocol === 'file:') return;
+  checking = true;
+  try {
+    const res = await fetch('js/version.js', { cache: 'no-store' });
+    const latest = res.ok ? readBuild(await res.text()) : null;
+    if (shouldReload({ running: BUILD, latest, busy: busy(), interacted, tried: sess() })) {
+      sess(latest);
+      reloading = true;
+      location.reload();
+    }
+  } catch (_) { /* offline: keep the build we have */ } finally { checking = false; }
+}
+
+let swReg = null;
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  // updateViaCache 'none': the update check never takes sw.js from the HTTP cache.
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then((reg) => { swReg = reg; }).catch((err) => console.warn('SW not registered', err));
+  navigator.serviceWorker.addEventListener('controllerchange', checkBuild);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { interacted = false; return; }
+  if (swReg) swReg.update().catch(() => {});
+  checkBuild();
+});
+window.addEventListener('pageshow', (e) => { if (e.persisted) checkBuild(); });
+checkBuild();

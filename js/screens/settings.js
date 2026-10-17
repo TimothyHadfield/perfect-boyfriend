@@ -3,6 +3,7 @@ import { esc, topbar, banner, help, flash } from '../ui.js';
 import { HOLIDAYS, holidayPrefs } from '../logic/holidays.js';
 import { budgetOf } from '../logic/history.js';
 import { buildBackup, backupName, parseBackup, planRestore } from '../logic/backup.js';
+import { BUILD } from '../version.js';
 
 let backupMsg = '';   // last download/restore result, kept across re-renders
 
@@ -25,6 +26,7 @@ function render({ S }) {
         <label class="btn set-restore${S.info.uid ? '' : ' is-disabled'}">Restore<input type="file" accept=".json,application/json" data-backup-file${S.info.uid ? '' : ' disabled'}></label>
       </div>
       <p class="form-msg set-backup-msg" role="status">${esc(backupMsg)}</p>
+      <p class="set-build">Build ${esc(BUILD)}</p>
     </div>`;
 }
 

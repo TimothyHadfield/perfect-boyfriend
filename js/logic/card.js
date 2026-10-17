@@ -62,7 +62,8 @@ export function totals(deals, sscUses = []) {
   return { deals: n, uses };
 }
 
-const stamp = (u) => {
+// When a row was saved (Firestore updatedAt), in ms. Shared with share.js savedFor.
+export const stamp = (u) => {
   const t = u.updatedAt;
   if (t == null) return Infinity;                 // still saving: it's the newest
   if (typeof t.toMillis === 'function') return t.toMillis();

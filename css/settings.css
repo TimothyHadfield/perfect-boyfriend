@@ -46,6 +46,9 @@
 .set-restore.is-disabled, .set-backup .btn:disabled { opacity: .5; }
 .set-backup-msg { margin-top: 6px; }
 
+/* Build stamp: small and quiet, so Tim can tell which build the phone runs. */
+.set-build { margin-top: 18px; color: var(--ink-faint); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+
 @media (min-width: 860px) {
   .screen-settings .pane > * { max-width: 640px; }
   .switch-cell > span { font-size: var(--fs-lg); }

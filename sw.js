@@ -3,12 +3,17 @@
 // code, and the cache is only the offline fallback, so a stale build can't
 // stick. The Firebase SDK (versioned URLs on gstatic) is cache-first.
 // Firestore/Auth traffic is never touched (Firestore has its own offline cache).
-const CACHE = 'pb-v10';
+// BUILD must equal js/version.js (tests/build.test.mjs). Changing it changes this file's bytes,
+// which is what makes phones install the new worker and refresh the offline copy.
+const BUILD = '2026-10-17.1';
+const CACHE = 'pb-' + BUILD;
 const SHELL = [
   './',
   'index.html',
   'css/app.css',
   'js/app.js',
+  'js/version.js',
+  'js/logic/update.js',
   'js/ui.js',
   'js/backend.js',
   'js/screens/home.js', 'js/screens/dates.js', 'js/screens/plan.js', 'js/screens/gifts.js', 'js/screens/profile.js',
@@ -42,7 +47,9 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
+  // cache: 'reload' skips the browser's HTTP cache (GitHub Pages: max-age=600), so the offline
+  // copy is the new build, not a 10-minute-old mix.
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).catch(() => {}));
   self.skipWaiting();
 });
 

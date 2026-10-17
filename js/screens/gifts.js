@@ -202,7 +202,7 @@ function openGivenEditor(ctx, g) {
   const existing = g && parseYMD(g.date) ? g : null;
   let id;
   try { id = g ? g.id : ctx.backend.newListId('gifts'); } catch (err) { flash(ctx.backend.friendlyError(err)); return; }
-  const d = { ...(g || { title: '', added: todayYMD() }), id };
+  const d = { ...(g || { title: '', added: new Date().toISOString() }), id };
   openEditor(`${editorHead(existing ? 'Given gift' : 'Mark given')}
     <form class="form" id="ed-form">
       <label class="field"><span>Gift</span><input id="ed-title" maxlength="200" value="${esc(d.title)}" required></label>

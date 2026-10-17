@@ -4,6 +4,7 @@
 // Road drive times come from data/drive-times.json (o.times = driveTable(json)); without it, estimates.
 // o.weather = that day's forecast ({code, hi, lo, pop}, js/logic/weather.js); o.history = dateLog rows.
 import { badWeather, dateTemp, wetLikely, wxKind } from './weather.js';
+import { usesLeft } from './card.js';
 
 export const OREM = { lat: 40.2969, lng: -111.6946, name: 'Orem' };
 export const ROAD_FACTOR = 1.3;     // straight line -> road distance
@@ -211,11 +212,8 @@ export function dealSave(text, cost, kind) {
 /* ---------------- SSC uses ---------------- */
 
 // Uses left = printed uses - circles already punched on the card - uses logged in the app.
-export function usesLeft(deal, sscUses = []) {
-  if (deal.uses === 'unlimited') return Infinity;
-  const logged = sscUses.filter((u) => u.dealId === deal.id).length;
-  return Math.max(0, (+deal.uses || 0) - (+deal.used || 0) - logged);
-}
+// One function for Plan and Card (2026-10-17: Plan used to count a missing `uses` as 0, Card as 1).
+export { usesLeft };
 
 export function pickDeal(stop, day, start, month, sscUses) {
   let best = null;
